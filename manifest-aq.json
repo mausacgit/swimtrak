@@ -1,14 +1,25 @@
 {
-  "name": "SWIMTRAK — Aquaknights",
+  "name": "SWIMTRAK \u2014 Aquaknights",
   "short_name": "Aquaknights",
   "description": "St. Stephen's Manila Aquaknights swim team tracker",
-  "start_url": "/index.html",
+  "start_url": "/swimtrak/",
+  "scope": "/swimtrak/",
   "display": "standalone",
   "background_color": "#f0f4f8",
   "theme_color": "#00308F",
   "orientation": "portrait-primary",
   "icons": [
-    { "src": "icon-aq.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-aq.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "/swimtrak/icon-aq.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/swimtrak/icon-aq.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
