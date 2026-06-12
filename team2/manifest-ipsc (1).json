@@ -1,0 +1,25 @@
+{
+  "name": "SWIMTRAK \u2014 Ilustre",
+  "short_name": "Ilustre",
+  "description": "Ilustre Performance Swim Club tracker",
+  "start_url": "/swimtrak/team2/",
+  "scope": "/swimtrak/team2/",
+  "display": "standalone",
+  "background_color": "#f0f4f8",
+  "theme_color": "#065f46",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/swimtrak/icon-ipsc.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/swimtrak/icon-ipsc.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
