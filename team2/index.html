@@ -2377,20 +2377,37 @@ function generateEntryForm(){
     const ln=swimmer.lastName||'';const fn=swimmer.firstName||'';
     const dn=ln&&fn?ln+', '+fn:displayName(swimmer);
     // Age of reckoning: Dec 31, 2026
+    // Birthday stored as MMDDYYYY (e.g. "01152008") or YYYY-MM-DD
     let age=swimmer.age||'';
-    if(swimmer.birthday){
-      const b=new Date(swimmer.birthday);
-      const reckoning=new Date(2026,11,31);
-      let a=reckoning.getFullYear()-b.getFullYear();
-      if(reckoning.getMonth()<b.getMonth()||(reckoning.getMonth()===b.getMonth()&&reckoning.getDate()<b.getDate()))a--;
-      age=a;
-    }
     let bday=swimmer.birthday||'';
-    if(bday&&bday.includes('-')){const p=bday.split('-');bday=p[1]+'/'+p[2]+'/'+p[0];}
+    let bdayFormatted='';
+    if(bday){
+      let mm='',dd='',yyyy='';
+      if(bday.includes('-')){
+        // YYYY-MM-DD format
+        const p=bday.split('-');yyyy=p[0];mm=p[1];dd=p[2];
+      } else if(bday.length===8){
+        // MMDDYYYY format
+        mm=bday.slice(0,2);dd=bday.slice(2,4);yyyy=bday.slice(4,8);
+      }
+      if(mm&&dd&&yyyy){
+        bdayFormatted=mm+'/'+dd+'/'+yyyy;
+        // Calculate age as of Dec 31, 2026
+        const reckoning=new Date(2026,11,31);
+        const birthMonth=parseInt(mm,10)-1; // 0-indexed
+        const birthDay=parseInt(dd,10);
+        const birthYear=parseInt(yyyy,10);
+        let a=2026-birthYear;
+        if(reckoning.getMonth()<birthMonth||(reckoning.getMonth()===birthMonth&&reckoning.getDate()<birthDay))a--;
+        age=a;
+      }
+    }
+    bday=bdayFormatted;
     entries.push({dn,bday,age,gender:gender==='M'?'M':'F',evNo,evName,st,day:ei.day});
   });
   if(!entries.length){alert('No events selected.');return;}
-  entries.sort((a,b)=>a.day-b.day||a.evNo-b.evNo);
+  // Sort: alphabetically by last name, then within each swimmer by event number
+  entries.sort((a,b)=>a.dn.localeCompare(b.dn)||a.evNo-b.evNo);
   generateEntryFormDOCX(entries,meetName,teamName);
 }
 
