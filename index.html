@@ -2406,7 +2406,8 @@ function generateEntryForm(){
     entries.push({dn,bday,age,gender:gender==='M'?'M':'F',evNo,evName,st,day:ei.day});
   });
   if(!entries.length){alert('No events selected.');return;}
-  entries.sort((a,b)=>a.day-b.day||a.evNo-b.evNo);
+  // Sort: alphabetically by last name, then within each swimmer by event number
+  entries.sort((a,b)=>a.dn.localeCompare(b.dn)||a.evNo-b.evNo);
   generateEntryFormDOCX(entries,meetName,teamName);
 }
 
