@@ -16,7 +16,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,san
 .topbar svg{width:20px;height:20px;stroke:#fff;stroke-width:1.8;fill:none}
 .topbar h1{font-size:15px;font-weight:700;letter-spacing:.2px}
 .topbar .sub{font-size:11px;opacity:.7;margin-left:6px}
-.tabs-wrap{background:#1a1d27;border-bottom:1px solid #2d3348;padding:0 16px;overflow-x:auto;position:sticky;top:0;z-index:100}
+.tabs-wrap{background:#1a1d27;border-bottom:1px solid #2d3348;position:sticky;top:0;z-index:100}
+.cat-tabs{display:flex;gap:5px;padding:8px 12px}
+.cat-tab{flex:1;padding:9px 6px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid #2d3348;background:#1a1d27;color:#8892a4;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;transition:all .12s;white-space:nowrap}
+.cat-tab svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
+.cat-tab.active{color:#fff;background:#1d4ed8;border-color:#1d4ed8}
+.cat-tab:hover:not(.active){color:#e2e8f0;border-color:#3d4460}
+.sub-tabs{display:flex;border-top:1px solid #2d3348;padding:0 12px;overflow-x:auto}
+.sub-tab{padding:9px 11px;font-size:11.5px;cursor:pointer;border:none;background:none;color:#8892a4;border-bottom:2px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:4px;font-family:inherit;transition:color .12s}
+.sub-tab svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none}
+.sub-tab.active{color:#60a5fa;border-bottom-color:#60a5fa;font-weight:600}
+.sub-tab:hover:not(.active){color:#e2e8f0;background:#252a38}
 .tabs{display:flex}
 .tab{padding:10px 12px;font-size:12px;cursor:pointer;border:none;background:none;color:#8892a4;border-bottom:2px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:4px;font-family:inherit;transition:color .12s}
 .tab svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none}
@@ -152,22 +162,13 @@ canvas{background:#1a1d27}
 </div>
 
 <div class="tabs-wrap">
-  <div class="tabs" id="main-tabs">
-    <button class="tab active" onclick="showTab('roster')"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.87"/></svg>Roster</button>
-    <button class="tab" onclick="showTab('log-race')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>Log Race</button>
-    <button class="tab" onclick="showTab('log-training')"><svg viewBox="0 0 24 24"><path d="M2 12 Q6 6 10 12 Q14 18 18 12 Q22 6 22 12"/></svg>Log Training</button>
-    <button class="tab" onclick="showTab('pb-chart')"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>PB Chart</button>
-    <button class="tab" onclick="showTab('rankings')"><svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>Rankings</button>
-    <button class="tab" onclick="showTab('meets')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Meets</button>
-    <button class="tab" onclick="showTab('attendance')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>Attendance</button>
-    <button class="tab" onclick="showTab('training-overview')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Training Log</button>
-    <button class="tab" onclick="showTab('trend')"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Group Trend</button>
-    <button class="tab" onclick="showTab('meet-entries')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>Meet Entries</button>
-    <button class="tab" onclick="showTab('benchmarks')"><svg viewBox="0 0 24 24"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>Benchmarks</button>
-    <button class="tab" onclick="showTab('entry-form')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Entry Form</button>
-
-    <button class="tab" onclick="showTab('overview')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overview</button>
+  <div class="cat-tabs" id="cat-tabs">
+    <button class="cat-tab active" data-cat="team" onclick="showCategory('team')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Team</button>
+    <button class="cat-tab" data-cat="training" onclick="showCategory('training')"><svg viewBox="0 0 24 24"><path d="M2 12 Q6 6 10 12 Q14 18 18 12 Q22 6 22 12"/></svg>Training</button>
+    <button class="cat-tab" data-cat="meets" onclick="showCategory('meets')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Meets</button>
+    <button class="cat-tab" data-cat="performance" onclick="showCategory('performance')"><svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>Performance</button>
   </div>
+  <div class="sub-tabs" id="sub-tabs"></div>
 </div>
 
 <div class="main">
@@ -217,6 +218,7 @@ canvas{background:#1a1d27}
 <!-- == LOG RACE == -->
 <div id="section-log-race" class="section">
   <div class="section-header"><h2>Log Race Result</h2></div>
+  <div id="pending-entries-wrap"></div>
   <div class="card">
     <div class="form-row">
       <div class="field"><label>Search swimmer</label><input type="text" id="race-sw-search" placeholder="Type to filter…" oninput="filterRaceSwimmerSelect()" style="margin-bottom:4px"></div>
@@ -598,10 +600,12 @@ let meetEntries = JSON.parse(localStorage.getItem('swt_meetentries')||'[]');
 // new keys — won't affect existing data
 let meets       = JSON.parse(localStorage.getItem('swt_meets')||'[]');
 let benchmarks  = JSON.parse(localStorage.getItem('swt_benchmarks')||'[]');
+let pendingEntries = JSON.parse(localStorage.getItem('swt_pending')||'[]');
 // Pre-load Palarong benchmarks if none stored yet
 if(!benchmarks.length){
   benchmarks=[{"id": 1700000001, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 261.1, "swimmerName": "Evangelista"}, {"id": 1700000002, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 266.0, "swimmerName": "Cruz"}, {"id": 1700000003, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 287.51, "swimmerName": "Garra"}, {"id": 1700000004, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 288.45, "swimmerName": "Florendo"}, {"id": 1700000005, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Boys Elem", "place": 1, "time": 288.55, "swimmerName": "Blanco"}, {"id": 1700000006, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Boys Elem", "place": 2, "time": 288.95, "swimmerName": "Justiniano"}, {"id": 1700000007, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Girls Elem", "place": 1, "time": 324.11, "swimmerName": "Domacena"}, {"id": 1700000008, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Girls Elem", "place": 2, "time": 327.13, "swimmerName": "Icban"}, {"id": 1700000009, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Boys HS", "place": 1, "time": 61.87, "swimmerName": "Lentejas"}, {"id": 1700000010, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Boys HS", "place": 2, "time": 62.59, "swimmerName": "Paragatos"}, {"id": 1700000011, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Girls HS", "place": 1, "time": 67.7, "swimmerName": "Garra"}, {"id": 1700000012, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Girls HS", "place": 2, "time": 69.44, "swimmerName": "Uy KJ"}, {"id": 1700000013, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Boys Elem", "place": 1, "time": 69.92, "swimmerName": "Rivera"}, {"id": 1700000014, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Boys Elem", "place": 2, "time": 70.84, "swimmerName": "Blanco"}, {"id": 1700000015, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Girls Elem", "place": 1, "time": 77.95, "swimmerName": "Usman"}, {"id": 1700000016, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Girls Elem", "place": 2, "time": 78.75, "swimmerName": "Bakuteza"}, {"id": 1700000017, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys HS", "place": 1, "time": 67.17, "swimmerName": "Jose"}, {"id": 1700000018, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys HS", "place": 2, "time": 68.82, "swimmerName": "Sy KG"}, {"id": 1700000019, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls HS", "place": 1, "time": 75.63, "swimmerName": "David"}, {"id": 1700000020, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls HS", "place": 2, "time": 76.12, "swimmerName": "Antonio"}, {"id": 1700000021, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys Elem", "place": 1, "time": 84.22, "swimmerName": "Buenavidez"}, {"id": 1700000022, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys Elem", "place": 2, "time": 85.94, "swimmerName": "Cayabyab"}, {"id": 1700000023, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls Elem", "place": 1, "time": 86.16, "swimmerName": "Velez"}, {"id": 1700000024, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls Elem", "place": 2, "time": 86.77, "swimmerName": "Elazegui"}, {"id": 1700000025, "label": "Palarong NCR 2026", "event": "400m IM", "course": "L", "division": "Boys HS", "place": 1, "time": 287.1, "swimmerName": "Jose"}, {"id": 1700000026, "label": "Palarong NCR 2026", "event": "400m IM", "course": "L", "division": "Boys HS", "place": 2, "time": 288.88, "swimmerName": "Jose AC"}, {"id": 1700000027, "label": "Palarong NCR 2026", "event": "400m IM", "course": "L", "division": "Girls HS", "place": 1, "time": 317.54, "swimmerName": "Santor"}, {"id": 1700000028, "label": "Palarong NCR 2026", "event": "400m IM", "course": "L", "division": "Girls HS", "place": 2, "time": 325.04, "swimmerName": "Florendo"}, {"id": 1700000029, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 120.39, "swimmerName": "Chan KB"}, {"id": 1700000030, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 122.68, "swimmerName": "Evangelista"}, {"id": 1700000031, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 134.88, "swimmerName": "Rodriguez"}, {"id": 1700000032, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 138.67, "swimmerName": "Florendo"}, {"id": 1700000033, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Boys Elem", "place": 1, "time": 136.35, "swimmerName": "Blanco"}, {"id": 1700000034, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Boys Elem", "place": 2, "time": 149.83, "swimmerName": "Ibo"}, {"id": 1700000035, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Girls Elem", "place": 1, "time": 152.82, "swimmerName": "Isip"}, {"id": 1700000036, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Girls Elem", "place": 2, "time": 154.42, "swimmerName": "Domacena"}, {"id": 1700000037, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Boys HS", "place": 1, "time": 25.23, "swimmerName": "Ajido"}, {"id": 1700000038, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Boys HS", "place": 2, "time": 26.11, "swimmerName": "Chan KB"}, {"id": 1700000039, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Girls HS", "place": 1, "time": 29.2, "swimmerName": "Santor"}, {"id": 1700000040, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Girls HS", "place": 2, "time": 30.41, "swimmerName": "Martin"}, {"id": 1700000041, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Boys Elem", "place": 1, "time": 30.81, "swimmerName": "Alegre"}, {"id": 1700000042, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Boys Elem", "place": 2, "time": 31.29, "swimmerName": "Justiniano"}, {"id": 1700000043, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Girls Elem", "place": 1, "time": 32.77, "swimmerName": "Mendoza"}, {"id": 1700000044, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Girls Elem", "place": 2, "time": 33.04, "swimmerName": "Velez"}, {"id": 1700000045, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Boys HS", "place": 1, "time": 132.95, "swimmerName": "Jose"}, {"id": 1700000046, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Boys HS", "place": 2, "time": 136.62, "swimmerName": "Ajido"}, {"id": 1700000047, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Girls HS", "place": 1, "time": 147.26, "swimmerName": "Garra"}, {"id": 1700000048, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Girls HS", "place": 2, "time": 150.88, "swimmerName": "Santor"}, {"id": 1700000049, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Boys Elem", "place": 1, "time": 152.07, "swimmerName": "Blanco"}, {"id": 1700000050, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Boys Elem", "place": 2, "time": 155.65, "swimmerName": "Rivera"}, {"id": 1700000051, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Girls Elem", "place": 1, "time": 172.72, "swimmerName": "Montes"}, {"id": 1700000052, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Girls Elem", "place": 2, "time": 173.28, "swimmerName": "Arcenal"}, {"id": 1700000053, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys HS", "place": 1, "time": 31.02, "swimmerName": "Jose"}, {"id": 1700000054, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys HS", "place": 2, "time": 31.31, "swimmerName": "Bersamin"}, {"id": 1700000055, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls HS", "place": 1, "time": 33.85, "swimmerName": "David"}, {"id": 1700000056, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls HS", "place": 2, "time": 34.84, "swimmerName": "Antonio"}, {"id": 1700000057, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys Elem", "place": 1, "time": 37.17, "swimmerName": "Uy CA"}, {"id": 1700000058, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys Elem", "place": 2, "time": 38.01, "swimmerName": "Buenavidez"}, {"id": 1700000059, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls Elem", "place": 1, "time": 39.0, "swimmerName": "Velez"}, {"id": 1700000060, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls Elem", "place": 2, "time": 39.72, "swimmerName": "Elazegui"}, {"id": 1700000061, "label": "Palarong NCR 2026", "event": "200m Backstroke", "course": "L", "division": "Boys HS", "place": 1, "time": 136.96, "swimmerName": "Paragatos"}, {"id": 1700000062, "label": "Palarong NCR 2026", "event": "200m Backstroke", "course": "L", "division": "Boys HS", "place": 2, "time": 137.89, "swimmerName": "Sia"}, {"id": 1700000063, "label": "Palarong NCR 2026", "event": "200m Backstroke", "course": "L", "division": "Girls HS", "place": 1, "time": 147.68, "swimmerName": "Garra"}, {"id": 1700000064, "label": "Palarong NCR 2026", "event": "200m Backstroke", "course": "L", "division": "Girls HS", "place": 2, "time": 151.83, "swimmerName": "Uy KJ"}, {"id": 1700000065, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Boys HS", "place": 1, "time": 28.23, "swimmerName": "Lentejas"}, {"id": 1700000066, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Boys HS", "place": 2, "time": 28.69, "swimmerName": "Paragatos"}, {"id": 1700000067, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Girls HS", "place": 1, "time": 30.93, "swimmerName": "Garra"}, {"id": 1700000068, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Girls HS", "place": 2, "time": 31.83, "swimmerName": "Uy KJ"}, {"id": 1700000069, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Boys Elem", "place": 1, "time": 31.93, "swimmerName": "Rivera"}, {"id": 1700000070, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Boys Elem", "place": 2, "time": 32.88, "swimmerName": "Blanco"}, {"id": 1700000071, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Girls Elem", "place": 1, "time": 36.05, "swimmerName": "Bakuteza"}, {"id": 1700000072, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Girls Elem", "place": 2, "time": 36.16, "swimmerName": "Corpuz"}, {"id": 1700000073, "label": "Palarong NCR 2026", "event": "1500m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 1043.45, "swimmerName": "Evangelista"}, {"id": 1700000074, "label": "Palarong NCR 2026", "event": "1500m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 1052.77, "swimmerName": "Janda"}, {"id": 1700000075, "label": "Palarong NCR 2026", "event": "1500m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 1146.43, "swimmerName": "Mole"}, {"id": 1700000076, "label": "Palarong NCR 2026", "event": "1500m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 1151.66, "swimmerName": "Rodriguez"}, {"id": 1700000077, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 53.61, "swimmerName": "Chan KB"}, {"id": 1700000078, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 54.1, "swimmerName": "Ajido"}, {"id": 1700000079, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 62.3, "swimmerName": "Uy RP"}, {"id": 1700000080, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 62.32, "swimmerName": "Quinto"}, {"id": 1700000081, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Boys Elem", "place": 1, "time": 61.61, "swimmerName": "Rivera"}, {"id": 1700000082, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Boys Elem", "place": 2, "time": 63.78, "swimmerName": "Uy CA"}, {"id": 1700000083, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Girls Elem", "place": 1, "time": 70.4, "swimmerName": "Velez"}, {"id": 1700000084, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Girls Elem", "place": 2, "time": 70.74, "swimmerName": "Domacena"}, {"id": 1700000085, "label": "Palarong NCR 2026", "event": "200m Butterfly", "course": "L", "division": "Boys HS", "place": 1, "time": 130.91, "swimmerName": "Mojdeh"}, {"id": 1700000086, "label": "Palarong NCR 2026", "event": "200m Butterfly", "course": "L", "division": "Boys HS", "place": 2, "time": 132.14, "swimmerName": "Gonzalvo"}, {"id": 1700000087, "label": "Palarong NCR 2026", "event": "200m Butterfly", "course": "L", "division": "Girls HS", "place": 1, "time": 143.76, "swimmerName": "Santor"}, {"id": 1700000088, "label": "Palarong NCR 2026", "event": "200m Butterfly", "course": "L", "division": "Girls HS", "place": 2, "time": 148.0, "swimmerName": "Cuevas"}, {"id": 1700000089, "label": "Palarong NCR 2026", "event": "800m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 543.43, "swimmerName": "Evangelista"}, {"id": 1700000090, "label": "Palarong NCR 2026", "event": "800m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 544.03, "swimmerName": "Janda"}, {"id": 1700000091, "label": "Palarong NCR 2026", "event": "800m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 594.09, "swimmerName": "Rodriguez"}, {"id": 1700000092, "label": "Palarong NCR 2026", "event": "800m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 595.09, "swimmerName": "Florendo"}, {"id": 1700000093, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Boys HS", "place": 1, "time": 55.48, "swimmerName": "Ajido"}, {"id": 1700000094, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Boys HS", "place": 2, "time": 58.31, "swimmerName": "Chan KB"}, {"id": 1700000095, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Girls HS", "place": 1, "time": 63.6, "swimmerName": "Santor"}, {"id": 1700000096, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Girls HS", "place": 2, "time": 65.94, "swimmerName": "Cuevas"}, {"id": 1700000097, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Boys Elem", "place": 1, "time": 69.88, "swimmerName": "Justiniano"}, {"id": 1700000098, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Boys Elem", "place": 2, "time": 72.09, "swimmerName": "Cosidon"}, {"id": 1700000099, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Girls Elem", "place": 1, "time": 74.08, "swimmerName": "Icban"}, {"id": 1700000100, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Girls Elem", "place": 2, "time": 75.23, "swimmerName": "Montes"}, {"id": 1700000101, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 24.42, "swimmerName": "Ajido"}, {"id": 1700000102, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 24.78, "swimmerName": "Medenilla"}, {"id": 1700000103, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 28.1, "swimmerName": "Rivera N"}, {"id": 1700000104, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 28.28, "swimmerName": "Manocan"}, {"id": 1700000105, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Boys Elem", "place": 1, "time": 27.82, "swimmerName": "Rivera FA"}, {"id": 1700000106, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Boys Elem", "place": 2, "time": 27.97, "swimmerName": "Uy CA"}, {"id": 1700000107, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Girls Elem", "place": 1, "time": 31.61, "swimmerName": "Velez"}, {"id": 1700000108, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Girls Elem", "place": 2, "time": 31.8, "swimmerName": "Lamor"}, {"id": 1700000109, "label": "Palarong NCR 2026", "event": "200m Breaststroke", "course": "L", "division": "Boys HS", "place": 1, "time": 144.53, "swimmerName": "Jose"}, {"id": 1700000110, "label": "Palarong NCR 2026", "event": "200m Breaststroke", "course": "L", "division": "Boys HS", "place": 2, "time": 146.91, "swimmerName": "Sy KG"}, {"id": 1700000111, "label": "Palarong NCR 2026", "event": "200m Breaststroke", "course": "L", "division": "Girls HS", "place": 1, "time": 170.02, "swimmerName": "David"}, {"id": 1700000112, "label": "Palarong NCR 2026", "event": "200m Breaststroke", "course": "L", "division": "Girls HS", "place": 2, "time": 170.21, "swimmerName": "Mole"}, {"id": 1700000113, "label": "Pambansa QTS 2026", "event": "400m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 263.54, "swimmerName": "8th place"}, {"id": 1700000114, "label": "Pambansa QTS 2026", "event": "400m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 297.4, "swimmerName": "8th place"}, {"id": 1700000115, "label": "Pambansa QTS 2026", "event": "400m Freestyle", "course": "L", "division": "Boys Elem", "place": 8, "time": 299.62, "swimmerName": "8th place"}, {"id": 1700000116, "label": "Pambansa QTS 2026", "event": "400m Freestyle", "course": "L", "division": "Girls Elem", "place": 8, "time": 307.87, "swimmerName": "8th place"}, {"id": 1700000117, "label": "Pambansa QTS 2026", "event": "100m Backstroke", "course": "L", "division": "Boys HS", "place": 8, "time": 62.54, "swimmerName": "8th place"}, {"id": 1700000118, "label": "Pambansa QTS 2026", "event": "100m Backstroke", "course": "L", "division": "Girls HS", "place": 8, "time": 72.05, "swimmerName": "8th place"}, {"id": 1700000119, "label": "Pambansa QTS 2026", "event": "100m Backstroke", "course": "L", "division": "Boys Elem", "place": 8, "time": 72.84, "swimmerName": "8th place"}, {"id": 1700000120, "label": "Pambansa QTS 2026", "event": "100m Backstroke", "course": "L", "division": "Girls Elem", "place": 8, "time": 77.69, "swimmerName": "8th place"}, {"id": 1700000121, "label": "Pambansa QTS 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys HS", "place": 8, "time": 70.27, "swimmerName": "8th place"}, {"id": 1700000122, "label": "Pambansa QTS 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls HS", "place": 8, "time": 80.33, "swimmerName": "8th place"}, {"id": 1700000123, "label": "Pambansa QTS 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys Elem", "place": 8, "time": 81.21, "swimmerName": "8th place"}, {"id": 1700000124, "label": "Pambansa QTS 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls Elem", "place": 8, "time": 86.37, "swimmerName": "8th place"}, {"id": 1700000125, "label": "Pambansa QTS 2026", "event": "200m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 122.3, "swimmerName": "8th place"}, {"id": 1700000126, "label": "Pambansa QTS 2026", "event": "200m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 143.45, "swimmerName": "8th place"}, {"id": 1700000127, "label": "Pambansa QTS 2026", "event": "200m Freestyle", "course": "L", "division": "Boys Elem", "place": 8, "time": 141.07, "swimmerName": "8th place"}, {"id": 1700000128, "label": "Pambansa QTS 2026", "event": "200m Freestyle", "course": "L", "division": "Girls Elem", "place": 8, "time": 145.0, "swimmerName": "8th place"}, {"id": 1700000129, "label": "Pambansa QTS 2026", "event": "50m Butterfly", "course": "L", "division": "Boys HS", "place": 8, "time": 26.59, "swimmerName": "8th place"}, {"id": 1700000130, "label": "Pambansa QTS 2026", "event": "50m Butterfly", "course": "L", "division": "Girls HS", "place": 8, "time": 30.39, "swimmerName": "8th place"}, {"id": 1700000131, "label": "Pambansa QTS 2026", "event": "50m Butterfly", "course": "L", "division": "Boys Elem", "place": 8, "time": 30.59, "swimmerName": "8th place"}, {"id": 1700000132, "label": "Pambansa QTS 2026", "event": "50m Butterfly", "course": "L", "division": "Girls Elem", "place": 8, "time": 32.4, "swimmerName": "8th place"}, {"id": 1700000133, "label": "Pambansa QTS 2026", "event": "200m IM", "course": "L", "division": "Boys HS", "place": 8, "time": 139.81, "swimmerName": "8th place"}, {"id": 1700000134, "label": "Pambansa QTS 2026", "event": "200m IM", "course": "L", "division": "Girls HS", "place": 8, "time": 159.19, "swimmerName": "8th place"}, {"id": 1700000135, "label": "Pambansa QTS 2026", "event": "200m IM", "course": "L", "division": "Boys Elem", "place": 8, "time": 158.91, "swimmerName": "8th place"}, {"id": 1700000136, "label": "Pambansa QTS 2026", "event": "200m IM", "course": "L", "division": "Girls Elem", "place": 8, "time": 165.41, "swimmerName": "8th place"}, {"id": 1700000137, "label": "Pambansa QTS 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys HS", "place": 8, "time": 31.48, "swimmerName": "8th place"}, {"id": 1700000138, "label": "Pambansa QTS 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls HS", "place": 8, "time": 36.89, "swimmerName": "8th place"}, {"id": 1700000139, "label": "Pambansa QTS 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys Elem", "place": 8, "time": 36.09, "swimmerName": "8th place"}, {"id": 1700000140, "label": "Pambansa QTS 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls Elem", "place": 8, "time": 39.71, "swimmerName": "8th place"}, {"id": 1700000141, "label": "Pambansa QTS 2026", "event": "50m Backstroke", "course": "L", "division": "Boys HS", "place": 8, "time": 28.55, "swimmerName": "8th place"}, {"id": 1700000142, "label": "Pambansa QTS 2026", "event": "50m Backstroke", "course": "L", "division": "Girls HS", "place": 8, "time": 32.94, "swimmerName": "8th place"}, {"id": 1700000143, "label": "Pambansa QTS 2026", "event": "50m Backstroke", "course": "L", "division": "Boys Elem", "place": 8, "time": 33.42, "swimmerName": "8th place"}, {"id": 1700000144, "label": "Pambansa QTS 2026", "event": "50m Backstroke", "course": "L", "division": "Girls Elem", "place": 8, "time": 34.49, "swimmerName": "8th place"}, {"id": 1700000145, "label": "Pambansa QTS 2026", "event": "100m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 55.23, "swimmerName": "8th place"}, {"id": 1700000146, "label": "Pambansa QTS 2026", "event": "100m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 63.09, "swimmerName": "8th place"}, {"id": 1700000147, "label": "Pambansa QTS 2026", "event": "100m Freestyle", "course": "L", "division": "Boys Elem", "place": 8, "time": 63.48, "swimmerName": "8th place"}, {"id": 1700000148, "label": "Pambansa QTS 2026", "event": "100m Freestyle", "course": "L", "division": "Girls Elem", "place": 8, "time": 66.43, "swimmerName": "8th place"}, {"id": 1700000149, "label": "Pambansa QTS 2026", "event": "100m Butterfly", "course": "L", "division": "Boys HS", "place": 8, "time": 60.21, "swimmerName": "8th place"}, {"id": 1700000150, "label": "Pambansa QTS 2026", "event": "100m Butterfly", "course": "L", "division": "Girls HS", "place": 8, "time": 69.18, "swimmerName": "8th place"}, {"id": 1700000151, "label": "Pambansa QTS 2026", "event": "100m Butterfly", "course": "L", "division": "Boys Elem", "place": 8, "time": 68.59, "swimmerName": "8th place"}, {"id": 1700000152, "label": "Pambansa QTS 2026", "event": "100m Butterfly", "course": "L", "division": "Girls Elem", "place": 8, "time": 73.39, "swimmerName": "8th place"}, {"id": 1700000153, "label": "Pambansa QTS 2026", "event": "50m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 25.26, "swimmerName": "8th place"}, {"id": 1700000154, "label": "Pambansa QTS 2026", "event": "50m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 28.66, "swimmerName": "8th place"}, {"id": 1700000155, "label": "Pambansa QTS 2026", "event": "50m Freestyle", "course": "L", "division": "Boys Elem", "place": 8, "time": 28.6, "swimmerName": "8th place"}, {"id": 1700000156, "label": "Pambansa QTS 2026", "event": "50m Freestyle", "course": "L", "division": "Girls Elem", "place": 8, "time": 30.51, "swimmerName": "8th place"}, {"id": 1700000157, "label": "Pambansa QTS 2026", "event": "200m Breaststroke", "course": "L", "division": "Boys HS", "place": 8, "time": 159.52, "swimmerName": "8th place"}, {"id": 1700000158, "label": "Pambansa QTS 2026", "event": "200m Breaststroke", "course": "L", "division": "Girls HS", "place": 8, "time": 175.49, "swimmerName": "8th place"}, {"id": 1700000159, "label": "Pambansa QTS 2026", "event": "200m Backstroke", "course": "L", "division": "Boys HS", "place": 8, "time": 138.07, "swimmerName": "8th place"}, {"id": 1700000160, "label": "Pambansa QTS 2026", "event": "200m Backstroke", "course": "L", "division": "Girls HS", "place": 8, "time": 155.35, "swimmerName": "8th place"}, {"id": 1700000161, "label": "Pambansa QTS 2026", "event": "1500m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 1062.63, "swimmerName": "8th place"}, {"id": 1700000162, "label": "Pambansa QTS 2026", "event": "1500m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 1178.02, "swimmerName": "8th place"}, {"id": 1700000163, "label": "Pambansa QTS 2026", "event": "200m Butterfly", "course": "L", "division": "Boys HS", "place": 8, "time": 134.84, "swimmerName": "8th place"}, {"id": 1700000164, "label": "Pambansa QTS 2026", "event": "200m Butterfly", "course": "L", "division": "Girls HS", "place": 8, "time": 159.76, "swimmerName": "8th place"}, {"id": 1700000165, "label": "Pambansa QTS 2026", "event": "800m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 551.09, "swimmerName": "8th place"}, {"id": 1700000166, "label": "Pambansa QTS 2026", "event": "800m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 610.69, "swimmerName": "8th place"}, {"id": 1700000167, "label": "Pambansa QTS 2026", "event": "400m IM", "course": "L", "division": "Boys HS", "place": 8, "time": 303.09, "swimmerName": "8th place"}, {"id": 1700000168, "label": "Pambansa QTS 2026", "event": "400m IM", "course": "L", "division": "Girls HS", "place": 8, "time": 344.2, "swimmerName": "8th place"}];
   localStorage.setItem('swt_benchmarks',JSON.stringify(benchmarks));
+  localStorage.setItem('swt_pending',JSON.stringify(pendingEntries));
 }
 let periods     = JSON.parse(localStorage.getItem('swt_periods')||'[]');
 let editingId   = null;
@@ -667,13 +671,61 @@ function swimmerDisplayForSearch(s){
 // ===========================================================
 // TABS
 // ===========================================================
+// ===========================================================
+// TAB / CATEGORY NAVIGATION
+// ===========================================================
+const TAB_META={
+  roster:{label:'Roster',cat:'team',icon:'<svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.87"/></svg>'},
+  attendance:{label:'Attendance',cat:'team',icon:'<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>'},
+  overview:{label:'Overview',cat:'team',icon:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>'},
+  'log-training':{label:'Log Training',cat:'training',icon:'<svg viewBox="0 0 24 24"><path d="M2 12 Q6 6 10 12 Q14 18 18 12 Q22 6 22 12"/></svg>'},
+  'training-overview':{label:'Training Log',cat:'training',icon:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'},
+  trend:{label:'Group Trend',cat:'training',icon:'<svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>'},
+  'log-race':{label:'Log Race',cat:'meets',icon:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>'},
+  meets:{label:'Meets',cat:'meets',icon:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'},
+  'entry-form':{label:'Entry Form',cat:'meets',icon:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>'},
+  'meet-entries':{label:'Meet Entries',cat:'meets',icon:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>'},
+  'pb-chart':{label:'PB Chart',cat:'performance',icon:'<svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'},
+  rankings:{label:'Rankings',cat:'performance',icon:'<svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>'},
+  benchmarks:{label:'Benchmarks',cat:'performance',icon:'<svg viewBox="0 0 24 24"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>'},
+};
+const CATEGORIES={
+  team:{tabs:['roster','attendance','overview']},
+  training:{tabs:['log-training','training-overview','trend']},
+  meets:{tabs:['log-race','meets','entry-form','meet-entries']},
+  performance:{tabs:['pb-chart','rankings','benchmarks']},
+};
+// Remember last visited tab per category
+const lastTabInCategory={team:'roster',training:'log-training',meets:'log-race',performance:'pb-chart'};
+
+function renderSubTabs(cat){
+  const sub=document.getElementById('sub-tabs');if(!sub)return;
+  sub.innerHTML=CATEGORIES[cat].tabs.map(t=>{
+    const m=TAB_META[t];
+    return'<button class="sub-tab" data-tab="'+t+'" onclick="showTab(\''+t+'\')">'+m.icon+m.label+'</button>';
+  }).join('');
+}
+
+function showCategory(cat){
+  document.querySelectorAll('.cat-tab').forEach(el=>el.classList.toggle('active',el.dataset.cat===cat));
+  renderSubTabs(cat);
+  showTab(lastTabInCategory[cat]);
+}
+
 function showTab(t){
-  const keys=['roster','log-race','log-training','pb-chart','rankings','meets','attendance','training-overview','trend','meet-entries','benchmarks','entry-form','overview'];
-  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',keys[i]===t));
+  const cat=TAB_META[t].cat;
+  lastTabInCategory[cat]=t;
+  // Sync category buttons + sub-tab row if we're switching categories
+  const activeCat=document.querySelector('.cat-tab.active');
+  if(!activeCat||activeCat.dataset.cat!==cat){
+    document.querySelectorAll('.cat-tab').forEach(el=>el.classList.toggle('active',el.dataset.cat===cat));
+    renderSubTabs(cat);
+  }
+  document.querySelectorAll('.sub-tab').forEach(el=>el.classList.toggle('active',el.dataset.tab===t));
   document.querySelectorAll('.section').forEach(el=>el.classList.remove('active'));
   document.getElementById('section-'+t).classList.add('active');
   if(['log-race','log-training','pb-chart','meet-entries'].includes(t))populateSwimmerSelects();
-  if(t==='log-race')populateDeleteMeetSelect();
+  if(t==='log-race'){populateDeleteMeetSelect();renderPendingEntries();}
   if(t==='rankings'){populateFilterEventSelects();populateBenchmarkSelects();renderRankings();}
   if(t==='benchmarks'){populateBenchmarkSelects();renderBenchmarksTable();}
   if(t==='entry-form'){renderEntryFormTab();}
@@ -919,6 +971,83 @@ function updateSplitFields(){
   wrap.innerHTML=`<p style="font-size:11px;color:#6b7a8d;margin-bottom:5px">Splits (optional)</p>
     <div class="splits-grid" style="max-width:520px">${legs.map((l,i)=>`<div><label style="font-size:9px">${l}m</label><input type="text" id="split-${i}" placeholder="ss.xx" style="max-width:88px"/></div>`).join('')}</div>`;
 }
+function renderPendingEntries(){
+  const wrap=document.getElementById('pending-entries-wrap');if(!wrap)return;
+  // Group pending (not done) entries by meet
+  const open=pendingEntries.filter(p=>!p.done);
+  if(!open.length){wrap.innerHTML='';return;}
+  const byMeet={};
+  open.forEach(p=>{(byMeet[p.meetName]=byMeet[p.meetName]||[]).push(p);});
+  wrap.innerHTML=Object.entries(byMeet).map(([meetName,entries])=>{
+    const sorted=[...entries].sort((a,b)=>{
+      const swA=swimmers.find(s=>s.id===a.swimmerId);const swB=swimmers.find(s=>s.id===b.swimmerId);
+      const nameA=swA?(swA.lastName||displayName(swA)):'';const nameB=swB?(swB.lastName||displayName(swB)):'';
+      return nameA.localeCompare(nameB)||(a.eventNo-b.eventNo);
+    });
+    return'<div class="card" style="margin-bottom:8px">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">'+
+        '<p class="card-title" style="margin:0;flex:1">Pending entries — '+esc(meetName)+' ('+entries.length+')</p>'+
+        '<button class="btn xs" onclick="copyHeatList('+JSON.stringify(meetName).replace(/"/g,'&quot;')+')">Copy heat list</button>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;gap:5px">'+
+        sorted.map(p=>{
+          const sw=swimmers.find(s=>s.id===p.swimmerId);
+          const name=sw?displayName(sw):'Unknown';
+          const seedDisplay=p.seedTime?p.seedTime:'NT';
+          return'<div style="display:flex;align-items:center;gap:8px;background:#252a38;border-radius:6px;padding:6px 10px;flex-wrap:wrap">'+
+            '<span style="font-size:11px;color:#8892a4;font-family:monospace;min-width:36px">'+p.eventNo+'</span>'+
+            '<span style="font-size:12px;font-weight:600;flex:1;min-width:120px">'+esc(name)+'</span>'+
+            '<span style="font-size:11px;color:#e2e8f0">'+esc(p.event)+'</span>'+
+            '<span style="font-size:11px;color:#8892a4;font-family:monospace">'+esc(seedDisplay)+'</span>'+
+            '<button class="btn xs primary" onclick="efLogPending('+JSON.stringify(p.id)+')">Log time</button>'+
+          '</div>';
+        }).join('')+
+      '</div></div>';
+  }).join('');
+}
+
+function efLogPending(pendingId){
+  const p=pendingEntries.find(x=>x.id===pendingId);if(!p)return;
+  // Pre-fill the race log form
+  const swSel=document.getElementById('race-swimmer');
+  const evSel=document.getElementById('race-event');
+  const meetSel=document.getElementById('race-meet-select');
+  if(swSel)swSel.value=String(p.swimmerId);
+  if(evSel){evSel.value=p.event;updateSplitFields();}
+  if(meetSel){
+    // ensure the meet option exists
+    const opt=[...meetSel.options].find(o=>o.value===p.meetName);
+    if(opt)meetSel.value=p.meetName;
+  }
+  window._pendingEntryId=p.id;
+  const finalInput=document.getElementById('race-final');
+  if(finalInput){finalInput.focus();finalInput.scrollIntoView({behavior:'smooth',block:'center'});}
+  flash('race-msg','Logging '+p.event+' for '+(swimmers.find(s=>s.id===p.swimmerId)?displayName(swimmers.find(s=>s.id===p.swimmerId)):'')+' — enter their time and Save.');
+}
+
+function copyHeatList(meetName){
+  const entries=pendingEntries.filter(p=>p.meetName===meetName&&!p.done);
+  if(!entries.length){alert('No pending entries for this meet.');return;}
+  const byEvent={};
+  entries.forEach(p=>{(byEvent[p.eventNo]=byEvent[p.eventNo]||{event:p.event,swimmers:[]}).swimmers.push(p.swimmerId);});
+  const sortedNos=Object.keys(byEvent).map(Number).sort((a,b)=>a-b);
+  let text=meetName.toUpperCase()+' — HEAT LIST\n'+'='.repeat(40)+'\n\n';
+  sortedNos.forEach(no=>{
+    const grp=byEvent[no];
+    text+='EVENT '+no+' — '+grp.event.toUpperCase()+'\n';
+    grp.swimmers.forEach(sid=>{
+      const sw=swimmers.find(s=>s.id===sid);
+      text+='  '+(sw?displayName(sw):'Unknown')+'\n';
+    });
+    text+='\n';
+  });
+  navigator.clipboard.writeText(text).then(()=>{
+    flash('race-msg','Heat list copied to clipboard.');
+  }).catch(()=>{
+    alert(text);
+  });
+}
+
 function saveRace(){
   const swId=parseInt(document.getElementById('race-swimmer').value);
   const ev=document.getElementById('race-event').value;const course=document.getElementById('race-course').value;
@@ -927,10 +1056,26 @@ function saveRace(){
   const ft=parseTime(fs);if(!ft){alert('Invalid time.');return;}
   const legs=getLegs(ev);const splits=legs.map((_,i)=>{const v=document.getElementById('split-'+i);return v&&v.value.trim()?parseTime(v.value.trim()):null;});
   const meetName=(document.getElementById('race-meet-select').value)||'';
-  races.push({id:Date.now(),swimmerId:swId,event:ev,course,finalTime:ft,splits,date:document.getElementById('race-date').value.trim()||today(),meet:meetName});
-  save();flash('race-msg',`Saved! ${ev} ${course==='L'?'LC':'SC'} — ${formatTime(ft)}`);
+  const raceId=Date.now();
+  races.push({id:raceId,swimmerId:swId,event:ev,course,finalTime:ft,splits,date:document.getElementById('race-date').value.trim()||today(),meet:meetName});
+
+  // Mark matching pending entry as done — either the one explicitly being logged,
+  // or any open pending entry for this swimmer+event+meet
+  let matched=null;
+  if(window._pendingEntryId){
+    matched=pendingEntries.find(p=>p.id===window._pendingEntryId&&!p.done);
+  }
+  if(!matched){
+    matched=pendingEntries.find(p=>!p.done&&p.swimmerId===swId&&p.event===ev&&p.meetName.trim().toLowerCase()===meetName.trim().toLowerCase());
+  }
+  if(matched){matched.done=true;matched.raceId=raceId;}
+  window._pendingEntryId=null;
+
+  save();
+  renderPendingEntries();
+  flash('race-msg',`Saved! ${ev} ${course==='L'?'LC':'SC'} — ${formatTime(ft)}`);
 }
-function clearRaceForm(){['race-final','race-date'].forEach(id=>document.getElementById(id).value='');document.getElementById('split-fields').innerHTML='';}
+function clearRaceForm(){['race-final','race-date'].forEach(id=>document.getElementById(id).value='');document.getElementById('split-fields').innerHTML='';window._pendingEntryId=null;}
 function populateDeleteMeetSelect(){
   const sel=document.getElementById('delete-by-meet-select');if(!sel)return;
   // All unique meet names from race records + defined meets
@@ -2303,6 +2448,8 @@ function importData(input){
   };
   reader.readAsText(file);
 }
+renderSubTabs('team');
+document.querySelector('.sub-tab[data-tab="roster"]')?.classList.add('active');
 populateEventSelects();
 populateMeetEventSelect();
 populateFilterEventSelects();
@@ -2317,15 +2464,64 @@ renderPeriodsUI();
 // ===========================================================
 const ENTRY_EVENT_MAP={'100m Freestyle':{boys:101,girls:102,day:1},'200m Breaststroke':{boys:103,girls:104,day:1},'50m Backstroke':{boys:105,girls:106,day:1},'200m Butterfly':{boys:107,girls:108,day:1},'1500m Freestyle':{boys:109,girls:110,day:1},'200m Freestyle':{boys:201,girls:202,day:2},'50m Butterfly':{boys:203,girls:204,day:2},'100m Backstroke':{boys:205,girls:206,day:2},'200m IM':{boys:207,girls:208,day:2},'50m Breaststroke':{boys:209,girls:210,day:2},'800m Freestyle':{boys:211,girls:212,day:2},'100m Breaststroke':{boys:301,girls:302,day:3},'50m Freestyle':{boys:303,girls:304,day:3},'400m IM':{boys:305,girls:306,day:3},'200m Backstroke':{boys:307,girls:308,day:3},'100m Butterfly':{boys:309,girls:310,day:3},'400m Freestyle':{boys:311,girls:312,day:3}};
 
+// Manual entries added per swimmer: {swimmerId: [{event, seedTime}]}
+let efManualEntries={};
+
 function renderEntryFormTab(){
   const wrap=document.getElementById('ef-swimmer-list');if(!wrap)return;
   if(!swimmers.length){wrap.innerHTML='<div class="empty">No swimmers in roster.</div>';return;}
   const sorted=[...swimmers].sort((a,b)=>(a.lastName||'').localeCompare(b.lastName||''));
+  // All entry-eligible events, sorted by event number for the add-dropdown
+  const ALL_EVENTS=Object.keys(ENTRY_EVENT_MAP).sort((a,b)=>ENTRY_EVENT_MAP[a].day-ENTRY_EVENT_MAP[b].day||ENTRY_EVENT_MAP[a].boys-ENTRY_EVENT_MAP[b].boys);
+
   wrap.innerHTML=sorted.map(s=>{
     const sid=s.id;
     const sr=races.filter(r=>r.swimmerId===sid&&r.finalTime);
-    const evs=[...new Set(sr.map(r=>r.event))].filter(e=>ENTRY_EVENT_MAP[e]).sort();
-    if(!evs.length)return'';
+    const evsWithPB=[...new Set(sr.map(r=>r.event))].filter(e=>ENTRY_EVENT_MAP[e]).sort();
+    const manual=efManualEntries[sid]||[];
+    const manualEvNames=manual.map(m=>m.event);
+    // Events available to add manually = all entry events minus ones already shown (PB or manual)
+    const availableToAdd=ALL_EVENTS.filter(e=>!evsWithPB.includes(e)&&!manualEvNames.includes(e));
+
+    const pbChips=evsWithPB.map(ev=>{
+      const ei=ENTRY_EVENT_MAP[ev];
+      const evNo=s.gender==='M'?ei.boys:ei.girls;
+      const best=[...sr.filter(r=>r.event===ev)].sort((a,b)=>a.finalTime-b.finalTime)[0];
+      const st=best?formatTime(best.finalTime):'—';
+      return'<label style="display:inline-flex;align-items:center;gap:4px;background:#252a38;border:1px solid #3d4460;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">'+
+        '<input type="checkbox" id="ef-ev-'+sid+'-'+evNo+'" data-swimmer="'+sid+'" data-event="'+esc(ev)+'" checked style="width:auto;height:auto">'+
+        '<span style="color:#e2e8f0">'+evNo+' — '+ev+'</span>'+
+        '<span style="color:#8892a4;font-family:monospace">'+st+'</span>'+
+      '</label>';
+    }).join('');
+
+    const manualChips=manual.map((m,mi)=>{
+      const ei=ENTRY_EVENT_MAP[m.event];
+      const evNo=s.gender==='M'?ei.boys:ei.girls;
+      const st=m.seedTime||'NT';
+      return'<label style="display:inline-flex;align-items:center;gap:4px;background:#1e2a3a;border:1px solid #3b82f6;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">'+
+        '<input type="checkbox" id="ef-man-'+sid+'-'+mi+'" data-swimmer="'+sid+'" data-event="'+esc(m.event)+'" data-seed="'+esc(m.seedTime||'')+'" checked style="width:auto;height:auto">'+
+        '<span style="color:#93c5fd">'+evNo+' — '+m.event+'</span>'+
+        '<span style="color:#8892a4;font-family:monospace">'+esc(st)+'</span>'+
+        '<span style="color:#fca5a5;cursor:pointer;font-weight:700" onclick="efRemoveManual('+sid+','+mi+');event.preventDefault()">✕</span>'+
+      '</label>';
+    }).join('');
+
+    const addRow=availableToAdd.length?(
+      '<div style="display:flex;align-items:center;gap:5px;margin-top:6px;padding-left:20px;flex-wrap:wrap">'+
+        '<select id="ef-add-event-'+sid+'" style="width:auto;height:26px;font-size:11px;min-width:160px">'+
+          availableToAdd.map(ev=>{
+            const ei=ENTRY_EVENT_MAP[ev];const evNo=s.gender==='M'?ei.boys:ei.girls;
+            return'<option value="'+esc(ev)+'">'+evNo+' — '+ev+'</option>';
+          }).join('')+
+        '</select>'+
+        '<input type="text" id="ef-add-time-'+sid+'" placeholder="Entry time (optional)" style="width:auto;height:26px;font-size:11px;width:130px">'+
+        '<button class="btn xs" onclick="efAddManual('+sid+')">+ Add event</button>'+
+      '</div>'
+    ):'';
+
+    if(!evsWithPB.length&&!manual.length&&!availableToAdd.length)return'';
+
     return'<div class="card" style="margin-bottom:8px;padding:10px 14px">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap">'+
         '<input type="checkbox" id="ef-sw-'+sid+'" checked onchange="efToggleSwimmer('+sid+')" style="width:auto;height:auto">'+
@@ -2333,20 +2529,32 @@ function renderEntryFormTab(){
         '<span class="badge '+(s.gender==='M'?'bb':'br')+'" style="font-size:10px">'+(s.gender==='M'?'M':'F')+'</span>'+
         '<span class="badge ba" style="font-size:10px">'+(s.group||'')+'</span>'+
       '</div>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:5px;padding-left:20px">'+
-        evs.map(ev=>{
-          const ei=ENTRY_EVENT_MAP[ev];
-          const evNo=s.gender==='M'?ei.boys:ei.girls;
-          const best=[...sr.filter(r=>r.event===ev)].sort((a,b)=>a.finalTime-b.finalTime)[0];
-          const st=best?formatTime(best.finalTime):'—';
-          return'<label style="display:inline-flex;align-items:center;gap:4px;background:#252a38;border:1px solid #3d4460;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">'+
-            '<input type="checkbox" id="ef-ev-'+sid+'-'+evNo+'" data-swimmer="'+sid+'" data-event="'+esc(ev)+'" checked style="width:auto;height:auto">'+
-            '<span style="color:#e2e8f0">'+evNo+' — '+ev+'</span>'+
-            '<span style="color:#8892a4;font-family:monospace">'+st+'</span>'+
-          '</label>';
-        }).join('')+
-      '</div></div>';
+      '<div style="display:flex;flex-wrap:wrap;gap:5px;padding-left:20px">'+pbChips+manualChips+'</div>'+
+      addRow+
+      '</div>';
   }).join('');
+}
+
+function efAddManual(sid){
+  const evSel=document.getElementById('ef-add-event-'+sid);
+  const timeInput=document.getElementById('ef-add-time-'+sid);
+  if(!evSel)return;
+  const ev=evSel.value;
+  let seedTime=timeInput?timeInput.value.trim():'';
+  // Validate/normalize the time if provided
+  if(seedTime){
+    const t=parseTime(seedTime);
+    if(!t||isNaN(t)){alert('Invalid time format. Use mm:ss.xx or ss.xx, or leave blank for NT.');return;}
+    seedTime=formatTime(t);
+  }
+  if(!efManualEntries[sid])efManualEntries[sid]=[];
+  efManualEntries[sid].push({event:ev,seedTime});
+  renderEntryFormTab();
+}
+function efRemoveManual(sid,idx){
+  if(!efManualEntries[sid])return;
+  efManualEntries[sid].splice(idx,1);
+  renderEntryFormTab();
 }
 
 function efToggleSwimmer(sid){
@@ -2371,9 +2579,15 @@ function generateEntryForm(){
     const ei=ENTRY_EVENT_MAP[evName];if(!ei)return;
     const gender=swimmer.gender||'M';
     const evNo=gender==='M'?ei.boys:ei.girls;
-    const sr=races.filter(r=>r.swimmerId===sid&&r.event===evName&&r.finalTime);
-    const best=[...sr].sort((a,b)=>a.finalTime-b.finalTime)[0];
-    const st=best?formatTime(best.finalTime):'';
+    // Manual entries carry their own seed time via data-seed (may be empty = NT)
+    let st='';
+    if(cb.hasAttribute('data-seed')){
+      st=cb.dataset.seed||'';
+    } else {
+      const sr=races.filter(r=>r.swimmerId===sid&&r.event===evName&&r.finalTime);
+      const best=[...sr].sort((a,b)=>a.finalTime-b.finalTime)[0];
+      st=best?formatTime(best.finalTime):'';
+    }
     const ln=swimmer.lastName||'';const fn=swimmer.firstName||'';
     const dn=ln&&fn?ln+', '+fn:displayName(swimmer);
     // Age of reckoning: Dec 31, 2026
@@ -2403,12 +2617,35 @@ function generateEntryForm(){
       }
     }
     bday=bdayFormatted;
-    entries.push({dn,bday,age,gender:gender==='M'?'M':'F',evNo,evName,st,day:ei.day});
+    entries.push({dn,bday,age,gender:gender==='M'?'M':'F',evNo,evName,st,day:ei.day,swimmerId:sid});
   });
   if(!entries.length){alert('No events selected.');return;}
   // Sort: alphabetically by last name, then within each swimmer by event number
   entries.sort((a,b)=>a.dn.localeCompare(b.dn)||a.evNo-b.evNo);
+  efCreateMeetAndPending(entries,meetName);
   generateEntryFormDOCX(entries,meetName,teamName);
+}
+
+// Auto-create the meet (if it doesn't exist) and register pending result entries
+function efCreateMeetAndPending(entries,meetName){
+  let meet=meets.find(m=>m.name.trim().toLowerCase()===meetName.trim().toLowerCase());
+  if(!meet){
+    meet={id:Date.now(),name:meetName,date:'',course:'S',location:''};
+    meets.push(meet);
+  }
+  let added=0;
+  entries.forEach(e=>{
+    const exists=pendingEntries.find(p=>p.meetName.trim().toLowerCase()===meetName.trim().toLowerCase()&&p.swimmerId===e.swimmerId&&p.event===e.evName);
+    if(!exists){
+      pendingEntries.push({id:Date.now()+Math.random(),meetName,swimmerId:e.swimmerId,event:e.evName,seedTime:e.st,done:false,eventNo:e.evNo});
+      added++;
+    }
+  });
+  save();
+  renderMeetsList();
+  populateRaceMeetSelect();
+  populateDeleteMeetSelect();
+  renderPendingEntries();
 }
 
 function generateEntryFormDOCX(entries,meetName,teamName){
