@@ -2373,11 +2373,11 @@ function goToSwimmer(id){showTab('roster');setTimeout(()=>showSwimmerDetail(pars
 // EXPORT / IMPORT
 // ===========================================================
 function exportData(){
-  const key=localStorage.getItem('swt_swimmers')?'swt':'swt2';
+  const key='swt';
   const data={
     _version:1,
     _exported:new Date().toISOString(),
-    _team: key==='swt'?"St. Stephen's Manila Aquaknights":"My Swim Team",
+    _team: "St. Stephen's Manila Aquaknights",
     swimmers:    JSON.parse(localStorage.getItem(key+'_swimmers')||'[]'),
     races:       JSON.parse(localStorage.getItem(key+'_races')||'[]'),
     trainings:   JSON.parse(localStorage.getItem(key+'_trainings')||'[]'),
@@ -2409,7 +2409,7 @@ function importData(input){
         return;
       }
       // Detect which key prefix to use based on current page
-      const key=localStorage.getItem('swt_swimmers')!==null?'swt':'swt2';
+      const key='swt';
       if(!confirm('This will REPLACE all current data with the imported file. Your existing data will be lost. Continue?')){
         input.value='';return;
       }
