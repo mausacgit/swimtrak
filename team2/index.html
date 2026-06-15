@@ -800,7 +800,7 @@ function renderRoster(){
     return true;
   });
   const grid=document.getElementById('swimmer-grid');
-  list=list.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  list=sorted(list);
   if(!list.length){grid.innerHTML=`<div style="grid-column:1/-1" class="empty">No swimmers match. <button class="btn xs" onclick="clearRosterFilters()">Clear filters</button></div>`;return;}
   function cardHTML(s){
     const rc=races.filter(r=>r.swimmerId===s.id).length;
@@ -1686,7 +1686,7 @@ function renderMeetsList(){
 function renderAttendanceGrid(){
   const gf=(document.getElementById('att-group-filter')||{}).value||'';
   let list=swimmers;if(gf)list=list.filter(s=>s.group===gf);
-  list=list.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  list=sorted(list);
   const grid=document.getElementById('att-grid');
   if(!list.length){grid.innerHTML=`<div class="empty">No swimmers</div>`;return;}
   grid.innerHTML=list.map(s=>{const st=attState[s.id]||'';return`<div class="att-card ${st}" onclick="toggleAttendance(${s.id},this)"><div class="att-dot"></div><div class="att-name">${esc(lastFirstName(s))}<br><span style="font-size:9px;color:#aab4c0">${s.group}</span></div></div>`;}).join('');
