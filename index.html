@@ -2477,34 +2477,46 @@ function renderEntryFormTab(){
   wrap.innerHTML=sorted.map(s=>{
     const sid=s.id;
     const sr=races.filter(r=>r.swimmerId===sid&&r.finalTime);
-    const evsWithPB=[...new Set(sr.map(r=>r.event))].filter(e=>ENTRY_EVENT_MAP[e]).sort();
+    const evsWithPB=[...new Set(sr.map(r=>r.event))].filter(e=>ENTRY_EVENT_MAP[e]);
     const manual=efManualEntries[sid]||[];
     const manualEvNames=manual.map(m=>m.event);
     // Events available to add manually = all entry events minus ones already shown (PB or manual)
     const availableToAdd=ALL_EVENTS.filter(e=>!evsWithPB.includes(e)&&!manualEvNames.includes(e));
 
-    const pbChips=evsWithPB.map(ev=>{
+    // Build a combined, event-number-ordered list of chips (PB-based + manual)
+    const chipItems=[];
+    evsWithPB.forEach(ev=>{
       const ei=ENTRY_EVENT_MAP[ev];
       const evNo=s.gender==='M'?ei.boys:ei.girls;
-      const best=[...sr.filter(r=>r.event===ev)].sort((a,b)=>a.finalTime-b.finalTime)[0];
-      const st=best?formatTime(best.finalTime):'—';
-      return'<label style="display:inline-flex;align-items:center;gap:4px;background:#252a38;border:1px solid #3d4460;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">'+
-        '<input type="checkbox" id="ef-ev-'+sid+'-'+evNo+'" data-swimmer="'+sid+'" data-event="'+esc(ev)+'" checked style="width:auto;height:auto">'+
-        '<span style="color:#e2e8f0">'+evNo+' — '+ev+'</span>'+
-        '<span style="color:#8892a4;font-family:monospace">'+st+'</span>'+
-      '</label>';
-    }).join('');
-
-    const manualChips=manual.map((m,mi)=>{
+      chipItems.push({ev,evNo,kind:'pb'});
+    });
+    manual.forEach((m,mi)=>{
       const ei=ENTRY_EVENT_MAP[m.event];
       const evNo=s.gender==='M'?ei.boys:ei.girls;
-      const st=m.seedTime||'NT';
-      return'<label style="display:inline-flex;align-items:center;gap:4px;background:#1e2a3a;border:1px solid #3b82f6;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">'+
-        '<input type="checkbox" id="ef-man-'+sid+'-'+mi+'" data-swimmer="'+sid+'" data-event="'+esc(m.event)+'" data-seed="'+esc(m.seedTime||'')+'" checked style="width:auto;height:auto">'+
-        '<span style="color:#93c5fd">'+evNo+' — '+m.event+'</span>'+
-        '<span style="color:#8892a4;font-family:monospace">'+esc(st)+'</span>'+
-        '<span style="color:#fca5a5;cursor:pointer;font-weight:700" onclick="efRemoveManual('+sid+','+mi+');event.preventDefault()">✕</span>'+
-      '</label>';
+      chipItems.push({ev:m.event,evNo,kind:'manual',mi,seedTime:m.seedTime});
+    });
+    chipItems.sort((a,b)=>a.evNo-b.evNo);
+
+    const allChips=chipItems.map(item=>{
+      if(item.kind==='pb'){
+        const ev=item.ev,evNo=item.evNo;
+        const best=[...sr.filter(r=>r.event===ev)].sort((a,b)=>a.finalTime-b.finalTime)[0];
+        const st=best?formatTime(best.finalTime):'—';
+        return'<label style="display:inline-flex;align-items:center;gap:4px;background:#252a38;border:1px solid #3d4460;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">'+
+          '<input type="checkbox" id="ef-ev-'+sid+'-'+evNo+'" data-swimmer="'+sid+'" data-event="'+esc(ev)+'" checked style="width:auto;height:auto">'+
+          '<span style="color:#e2e8f0">'+evNo+' — '+ev+'</span>'+
+          '<span style="color:#8892a4;font-family:monospace">'+st+'</span>'+
+        '</label>';
+      } else {
+        const ev=item.ev,evNo=item.evNo,mi=item.mi;
+        const st=item.seedTime||'NT';
+        return'<label style="display:inline-flex;align-items:center;gap:4px;background:#1e2a3a;border:1px solid #3b82f6;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">'+
+          '<input type="checkbox" id="ef-man-'+sid+'-'+mi+'" data-swimmer="'+sid+'" data-event="'+esc(ev)+'" data-seed="'+esc(item.seedTime||'')+'" checked style="width:auto;height:auto">'+
+          '<span style="color:#93c5fd">'+evNo+' — '+ev+'</span>'+
+          '<span style="color:#8892a4;font-family:monospace">'+esc(st)+'</span>'+
+          '<span style="color:#fca5a5;cursor:pointer;font-weight:700" onclick="efRemoveManual('+sid+','+mi+');event.preventDefault()">✕</span>'+
+        '</label>';
+      }
     }).join('');
 
     const addRow=availableToAdd.length?(
@@ -2529,7 +2541,7 @@ function renderEntryFormTab(){
         '<span class="badge '+(s.gender==='M'?'bb':'br')+'" style="font-size:10px">'+(s.gender==='M'?'M':'F')+'</span>'+
         '<span class="badge ba" style="font-size:10px">'+(s.group||'')+'</span>'+
       '</div>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:5px;padding-left:20px">'+pbChips+manualChips+'</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:5px;padding-left:20px">'+allChips+'</div>'+
       addRow+
       '</div>';
   }).join('');
