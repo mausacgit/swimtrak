@@ -639,6 +639,16 @@ function displayName(s){
   if(s.firstName||s.lastName)return((s.firstName||'')+' '+(s.lastName||'')).trim();
   return s.name||'';
 }
+// "Last, First" format — used in Roster and Rankings
+function lastFirstName(s){
+  if(s.lastName||s.firstName){
+    if(s.lastName&&s.firstName)return s.lastName+', '+s.firstName;
+    return s.lastName||s.firstName;
+  }
+  const parts=(s.name||'').trim().split(/\s+/);
+  if(parts.length>1)return parts.slice(-1)[0]+', '+parts.slice(0,-1).join(' ');
+  return s.name||'';
+}
 function exportName(s){
   if(s.lastName)return s.lastName.toUpperCase()+', '+(s.firstName||'');
   // fallback for old records
@@ -750,12 +760,12 @@ function populateSwimmerSelects(){
   ['race-swimmer','pb-swimmer','me-swimmer'].forEach(id=>{
     const sel=document.getElementById(id);if(!sel)return;
     const cur=sel.value;
-    sel.innerHTML=sorted(swimmers).map(s=>`<option value="${s.id}">${esc(displayName(s))}</option>`).join('');
+    sel.innerHTML=sorted(swimmers).map(s=>`<option value="${s.id}">${esc(lastFirstName(s))}</option>`).join('');
     if(cur)sel.value=cur;
   });
   const list=document.getElementById('train-swimmer-list');
   if(list)list.innerHTML=sorted(swimmers).map(s=>`<label style="display:flex;align-items:center;gap:5px;padding:3px 4px;cursor:pointer;border-radius:4px" onmouseover="this.style.background='#f0f4f8'" onmouseout="this.style.background=''">
-    <input type="checkbox" class="train-sw-cb" value="${s.id}"> <span>${esc(displayName(s))}</span> <span style="font-size:9px;color:#aaa;margin-left:auto">${s.group}</span>
+    <input type="checkbox" class="train-sw-cb" value="${s.id}"> <span>${esc(lastFirstName(s))}</span> <span style="font-size:9px;color:#aaa;margin-left:auto">${s.group}</span>
   </label>`).join('');
 }
 function populateRaceMeetSelect(){
@@ -765,7 +775,7 @@ function populateRaceMeetSelect(){
 function filterRaceSwimmerSelect(){
   const q=(document.getElementById('race-sw-search').value||'').toLowerCase();
   const sel=document.getElementById('race-swimmer');
-  sel.innerHTML=sorted(swimmers).filter(s=>!q||swimmerDisplayForSearch(s).includes(q)).map(s=>`<option value="${s.id}">${esc(displayName(s))}</option>`).join('');
+  sel.innerHTML=sorted(swimmers).filter(s=>!q||swimmerDisplayForSearch(s).includes(q)).map(s=>`<option value="${s.id}">${esc(lastFirstName(s))}</option>`).join('');
 }
 
 // ===========================================================
@@ -797,7 +807,7 @@ function renderRoster(){
     const genderClass=s.gender==='M'?'male-card':'female-card';
     return`<div class="swimmer-card ${genderClass}">
       <div onclick="showSwimmerDetail(${s.id})" style="cursor:pointer">
-        <div class="sc-name">${esc(displayName(s))}</div>
+        <div class="sc-name">${esc(lastFirstName(s))}</div>
         <div class="sc-meta">${s.age?s.age+'y · ':''}${s.gender||''} · ${s.stroke}</div>
         <div style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap">
           <span class="badge ${GC[s.group]||'bb'}">${s.group}</span>
@@ -915,7 +925,7 @@ function renderSwimmerDetailContent(id, tab){
   document.getElementById('swimmer-detail-content').innerHTML=`
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;margin-bottom:12px">
       <div>
-        <h2 style="font-size:18px;font-weight:700">${esc(displayName(sw))}</h2>
+        <h2 style="font-size:18px;font-weight:700">${esc(lastFirstName(sw))}</h2>
         <div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;align-items:center">
           <span class="badge ${GC[sw.group]||'bb'}">${sw.group}</span>
           <span style="font-size:11px;color:#6b7a8d">${sw.age?sw.age+' yrs · ':''}${sw.gender||''} · ${sw.stroke}</span>
@@ -992,7 +1002,7 @@ function renderPendingEntries(){
       '<div style="display:flex;flex-direction:column;gap:5px">'+
         sorted.map(p=>{
           const sw=swimmers.find(s=>s.id===p.swimmerId);
-          const name=sw?displayName(sw):'Unknown';
+          const name=sw?lastFirstName(sw):'Unknown';
           const seedDisplay=p.seedTime?p.seedTime:'NT';
           return'<div style="display:flex;align-items:center;gap:8px;background:#252a38;border-radius:6px;padding:6px 10px;flex-wrap:wrap">'+
             '<span style="font-size:11px;color:#8892a4;font-family:monospace;min-width:36px">'+p.eventNo+'</span>'+
@@ -1037,7 +1047,7 @@ function copyHeatList(meetName){
     text+='EVENT '+no+' — '+grp.event.toUpperCase()+'\n';
     grp.swimmers.forEach(sid=>{
       const sw=swimmers.find(s=>s.id===sid);
-      text+='  '+(sw?displayName(sw):'Unknown')+'\n';
+      text+='  '+(sw?lastFirstName(sw):'Unknown')+'\n';
     });
     text+='\n';
   });
@@ -1244,7 +1254,7 @@ function parseTMContent(content,filename){
       });
     }
 
-    if(sw) matched.push({...p,swimmerId:sw.id,swName:displayName(sw)});
+    if(sw) matched.push({...p,swimmerId:sw.id,swName:lastFirstName(sw)});
     else unmatched.push(p);
   });
 
@@ -1534,7 +1544,7 @@ function renderRankings(){
     }
     html+='<tr class="'+(r.s.gender==='M'?'gender-m-row':'gender-f-row')+'">'+
       '<td><span class="rank-medal">'+(medals[i]||i+1)+'</span></td>'+
-      '<td style="font-weight:700;cursor:pointer" onclick="goToSwimmer('+r.s.id+')">'+esc(displayName(r.s))+'</td>'+
+      '<td style="font-weight:700;cursor:pointer" onclick="goToSwimmer('+r.s.id+')">'+esc(lastFirstName(r.s))+'</td>'+
       '<td>'+(r.s.age||'—')+'</td>'+
       '<td><span class="badge '+(r.s.gender==='M'?'bb':'br')+'">'+(r.s.gender||'—')+'</span></td>'+
       '<td><span class="badge '+(GC[r.s.group]||'bb')+'">'+r.s.group+'</span></td>'+
@@ -1664,7 +1674,7 @@ function renderMeetsList(){
         </div>
       </div>
       ${rs.length?`<div style="margin-top:8px;overflow-x:auto"><table><thead><tr><th>Swimmer</th><th>Event</th><th>Course</th><th>Time</th></tr></thead><tbody>${
-        rs.sort((a,b)=>a.event.localeCompare(b.event)).map(r=>{const sw=swimmers.find(s=>s.id===r.swimmerId);return`<tr><td>${sw?esc(displayName(sw)):'?'}</td><td>${r.event}</td><td>${courseBadge(r.course||'S')}</td><td style="font-family:monospace;font-weight:700">${formatTime(r.finalTime)}</td></tr>`;}).join('')
+        rs.sort((a,b)=>a.event.localeCompare(b.event)).map(r=>{const sw=swimmers.find(s=>s.id===r.swimmerId);return`<tr><td>${sw?esc(lastFirstName(sw)):'?'}</td><td>${r.event}</td><td>${courseBadge(r.course||'S')}</td><td style="font-family:monospace;font-weight:700">${formatTime(r.finalTime)}</td></tr>`;}).join('')
       }</tbody></table></div>`:''}
     </div>`;
   }).join('');
@@ -1679,7 +1689,7 @@ function renderAttendanceGrid(){
   list=list.slice().sort((a,b)=>a.name.localeCompare(b.name));
   const grid=document.getElementById('att-grid');
   if(!list.length){grid.innerHTML=`<div class="empty">No swimmers</div>`;return;}
-  grid.innerHTML=list.map(s=>{const st=attState[s.id]||'';return`<div class="att-card ${st}" onclick="toggleAttendance(${s.id},this)"><div class="att-dot"></div><div class="att-name">${esc(displayName(s))}<br><span style="font-size:9px;color:#aab4c0">${s.group}</span></div></div>`;}).join('');
+  grid.innerHTML=list.map(s=>{const st=attState[s.id]||'';return`<div class="att-card ${st}" onclick="toggleAttendance(${s.id},this)"><div class="att-dot"></div><div class="att-name">${esc(lastFirstName(s))}<br><span style="font-size:9px;color:#aab4c0">${s.group}</span></div></div>`;}).join('');
   updateAttCount();
 }
 function toggleAttendance(id,el){const cur=attState[id]||'';if(!cur)attState[id]='present';else if(cur==='present')attState[id]='absent';else delete attState[id];el.className='att-card '+(attState[id]||'');updateAttCount();}
@@ -1784,10 +1794,10 @@ function renderTrainingOverview(){
       <div style="margin-top:8px">
         <div style="font-size:10px;font-weight:700;color:#6b7a8d;margin-bottom:4px;text-transform:uppercase">Swimmers (${swNames.length})</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px" id="tov-sw-${t.id}">
-          ${(t.swimmerIds||[]).map(id=>{const sw=swimmers.find(s=>s.id===id);return sw?`<span class="badge bt" style="display:flex;align-items:center;gap:3px">${esc(displayName(sw))}<button onclick="removeSwimmerFromSet(${t.id},${id})" style="border:none;background:none;cursor:pointer;color:#064e3b;font-size:10px;padding:0 1px" title="Remove">✕</button></span>`:'';}).join('')}
+          ${(t.swimmerIds||[]).map(id=>{const sw=swimmers.find(s=>s.id===id);return sw?`<span class="badge bt" style="display:flex;align-items:center;gap:3px">${esc(lastFirstName(sw))}<button onclick="removeSwimmerFromSet(${t.id},${id})" style="border:none;background:none;cursor:pointer;color:#064e3b;font-size:10px;padding:0 1px" title="Remove">✕</button></span>`:'';}).join('')}
         </div>
         <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap">
-          <select id="tov-add-sw-${t.id}" style="height:26px;font-size:11px;width:auto">${sorted(swimmers).map(s=>`<option value="${s.id}">${esc(displayName(s))}</option>`).join('')}</select>
+          <select id="tov-add-sw-${t.id}" style="height:26px;font-size:11px;width:auto">${sorted(swimmers).map(s=>`<option value="${s.id}">${esc(lastFirstName(s))}</option>`).join('')}</select>
           <button class="btn xs" onclick="addSwimmerToSet(${t.id})">+ Add swimmer</button>
         </div>
       </div>
@@ -1970,7 +1980,7 @@ function renderTrend(){
     swBreak.map(({sw,pb,recent,delta,count,col},idx)=>`
     <tr style="cursor:pointer" onclick="toggleSwTrendChart(${sw.id})">
       <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${col}"></span></td>
-      <td style="font-weight:700">${esc(displayName(sw))}</td>
+      <td style="font-weight:700">${esc(lastFirstName(sw))}</td>
       <td><span class="badge ${GC[sw.group]||'bb'}">${sw.group}</span></td>
       <td>${count}</td>
       <td style="font-family:monospace;font-weight:700">${formatTime(pb)}</td>
@@ -2038,7 +2048,7 @@ mixedNote+'\n'+
 
   // Build a private legend the coach keeps (shown on screen, not in copied text)
   const legend = allInOrder.map(x=>
-    nameMap.get(x.sw.id)+' = '+displayName(x.sw)
+    nameMap.get(x.sw.id)+' = '+lastFirstName(x.sw)
   ).join('\n');
 
   const card = document.getElementById('trend-claude-card');
@@ -2222,7 +2232,7 @@ function renderMeetEntriesTable(){
   if(!meetEntries.length){wrap.innerHTML=`<div class="empty">No entries yet</div>`;return;}
   const grouped={};meetEntries.forEach(e=>{if(!grouped[e.event])grouped[e.event]=[];grouped[e.event].push(e);});
   let html='<table><thead><tr><th>Event</th><th>Swimmer</th><th>Age</th><th>Entry time</th><th></th></tr></thead><tbody>';
-  EVENTS.filter(ev=>grouped[ev]).forEach(ev=>{grouped[ev].forEach(e=>{const sw=swimmers.find(s=>s.id===e.swimmerId);html+=`<tr><td>${ev}</td><td>${sw?esc(displayName(sw)):'?'}</td><td>${sw?sw.age:'?'}</td><td style="font-family:monospace;font-weight:700">${e.time?formatTime(e.time):'NT'}</td><td><button class="btn xs danger" onclick="removeMeetEntry(${e.id})">✕</button></td></tr>`;});});
+  EVENTS.filter(ev=>grouped[ev]).forEach(ev=>{grouped[ev].forEach(e=>{const sw=swimmers.find(s=>s.id===e.swimmerId);html+=`<tr><td>${ev}</td><td>${sw?esc(lastFirstName(sw)):'?'}</td><td>${sw?sw.age:'?'}</td><td style="font-family:monospace;font-weight:700">${e.time?formatTime(e.time):'NT'}</td><td><button class="btn xs danger" onclick="removeMeetEntry(${e.id})">✕</button></td></tr>`;});});
   wrap.innerHTML=html+'</tbody></table>';
 }
 function pad(s,n,right=false){s=String(s||'');while(s.length<n)s=right?s+' ':' '+s;return s.slice(0,n);}
@@ -2262,7 +2272,7 @@ function renderOverview(){
   const attWrap=document.getElementById('ov-attendance-wrap');
   if(attendance.length){
     const swAtt=swimmers.map(s=>{const p=attendance.filter(a=>a.records[s.id]==='present').length;const tot=attendance.filter(a=>a.records[s.id]!==undefined).length;return{s,p,tot,pct:tot?Math.round(p/tot*100):null};}).filter(x=>x.tot>0).sort((a,b)=>b.pct-a.pct);
-    attWrap.innerHTML=`<div class="card"><p class="card-title">Attendance overview (${attendance.length} sessions)</p><div class="tbl-wrap"><table><thead><tr><th>Swimmer</th><th>Gender</th><th>Age</th><th>Group</th><th>Present</th><th>Absent</th><th>Rate</th></tr></thead><tbody>${swAtt.map(({s,p,tot,pct})=>`<tr class="${s.gender==='M'?'gender-m-row':'gender-f-row'}"><td style="font-weight:600">${esc(displayName(s))}</td><td><span class="badge ${s.gender==='M'?'bb':'br'}">${s.gender||'—'}</span></td><td>${s.age||'—'}</td><td><span class="badge ${GC[s.group]||'bb'}">${s.group}</span></td><td style="color:#065f46;font-weight:600">${p}/${tot}</td><td style="color:#991b1b">${tot-p}</td><td><strong>${pct}%</strong></td></tr>`).join('')}</tbody></table></div></div>`;
+    attWrap.innerHTML=`<div class="card"><p class="card-title">Attendance overview (${attendance.length} sessions)</p><div class="tbl-wrap"><table><thead><tr><th>Swimmer</th><th>Gender</th><th>Age</th><th>Group</th><th>Present</th><th>Absent</th><th>Rate</th></tr></thead><tbody>${swAtt.map(({s,p,tot,pct})=>`<tr class="${s.gender==='M'?'gender-m-row':'gender-f-row'}"><td style="font-weight:600">${esc(lastFirstName(s))}</td><td><span class="badge ${s.gender==='M'?'bb':'br'}">${s.gender||'—'}</span></td><td>${s.age||'—'}</td><td><span class="badge ${GC[s.group]||'bb'}">${s.group}</span></td><td style="color:#065f46;font-weight:600">${p}/${tot}</td><td style="color:#991b1b">${tot-p}</td><td><strong>${pct}%</strong></td></tr>`).join('')}</tbody></table></div></div>`;
   }else{attWrap.innerHTML='';}
   const rows=swimmers.map(s=>{
     const sr=races.filter(r=>r.swimmerId===s.id);const pbM={};sr.forEach(r=>{const k=r.event+r.course;if(!pbM[k]||r.finalTime<pbM[k])pbM[k]=r.finalTime;});
@@ -2272,7 +2282,7 @@ function renderOverview(){
   }).sort((a,b)=>{const la=(a.s.lastName||a.s.name||'').localeCompare(b.s.lastName||b.s.name||'');return la!==0?la:(a.s.firstName||'').localeCompare(b.s.firstName||'');});
   document.getElementById('overview-table-wrap').innerHTML=`<table><thead><tr><th>Name</th><th>Gender</th><th>Age</th><th>Group</th><th>Stroke</th><th>Races</th><th>Sets</th><th>PBs</th><th>Last race</th><th>Attendance</th></tr></thead><tbody>${
     rows.map(({s,races,sets,pbs,lastDate,attPct})=>`<tr class="${s.gender==='M'?'gender-m-row':'gender-f-row'}">
-      <td style="font-weight:700;cursor:pointer" onclick="showTab('roster');setTimeout(()=>showSwimmerDetail(${s.id}),50)">${esc(displayName(s))}</td>
+      <td style="font-weight:700;cursor:pointer" onclick="showTab('roster');setTimeout(()=>showSwimmerDetail(${s.id}),50)">${esc(lastFirstName(s))}</td>
       <td><span class="badge ${s.gender==='M'?'bb':'br'}">${s.gender||'—'}</span></td>
       <td>${s.age||'—'}</td>
       <td><span class="badge ${GC[s.group]||'bb'}">${s.group}</span></td>
@@ -2537,7 +2547,7 @@ function renderEntryFormTab(){
     return'<div class="card" style="margin-bottom:8px;padding:10px 14px">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap">'+
         '<input type="checkbox" id="ef-sw-'+sid+'" checked onchange="efToggleSwimmer('+sid+')" style="width:auto;height:auto">'+
-        '<label for="ef-sw-'+sid+'" style="font-size:13px;font-weight:700;color:#e2e8f0;cursor:pointer;margin:0">'+esc(displayName(s))+'</label>'+
+        '<label for="ef-sw-'+sid+'" style="font-size:13px;font-weight:700;color:#e2e8f0;cursor:pointer;margin:0">'+esc(lastFirstName(s))+'</label>'+
         '<span class="badge '+(s.gender==='M'?'bb':'br')+'" style="font-size:10px">'+(s.gender==='M'?'M':'F')+'</span>'+
         '<span class="badge ba" style="font-size:10px">'+(s.group||'')+'</span>'+
       '</div>'+
