@@ -2547,6 +2547,36 @@ function renderEntryFormTab(){
   }).join('');
 }
 
+// Capture/restore checkbox states across re-renders, keyed by swimmer+event
+// (stable regardless of chip ordering or manual-entry index shifts)
+function efCaptureState(){
+  const state={};
+  document.querySelectorAll('#ef-swimmer-list input[type=checkbox]').forEach(cb=>{
+    let key;
+    if(cb.dataset.event!==undefined){
+      key='ev:'+cb.dataset.swimmer+'::'+cb.dataset.event;
+    } else if(cb.id&&cb.id.startsWith('ef-sw-')){
+      key='sw:'+cb.id.slice('ef-sw-'.length);
+    } else return;
+    state[key]=cb.checked;
+  });
+  return state;
+}
+function efRestoreState(state){
+  document.querySelectorAll('#ef-swimmer-list input[type=checkbox]').forEach(cb=>{
+    let key;
+    if(cb.dataset.event!==undefined){
+      key='ev:'+cb.dataset.swimmer+'::'+cb.dataset.event;
+    } else if(cb.id&&cb.id.startsWith('ef-sw-')){
+      key='sw:'+cb.id.slice('ef-sw-'.length);
+    } else return;
+    if(Object.prototype.hasOwnProperty.call(state,key)){
+      cb.checked=state[key];
+    }
+    // else: newly added item, keep its default (checked)
+  });
+}
+
 function efAddManual(sid){
   const evSel=document.getElementById('ef-add-event-'+sid);
   const timeInput=document.getElementById('ef-add-time-'+sid);
@@ -2561,12 +2591,16 @@ function efAddManual(sid){
   }
   if(!efManualEntries[sid])efManualEntries[sid]=[];
   efManualEntries[sid].push({event:ev,seedTime});
+  const state=efCaptureState();
   renderEntryFormTab();
+  efRestoreState(state);
 }
 function efRemoveManual(sid,idx){
   if(!efManualEntries[sid])return;
   efManualEntries[sid].splice(idx,1);
+  const state=efCaptureState();
   renderEntryFormTab();
+  efRestoreState(state);
 }
 
 function efToggleSwimmer(sid){
