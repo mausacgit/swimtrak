@@ -1206,10 +1206,21 @@ function parseTMContent(content,filename){
       // Time at pos 3-11 in seconds (e.g. "   40.10S" or "   98.52S")
       const timeRaw=line.slice(3,12).replace(/[^0-9.]/g,'').trim();
       const t=timeRaw?parseFloat(timeRaw):null;
-      // Date near pos 75-95: MMDDYYYY
+      // Date in E2 record: MMDDYYYY — validate before using
+      // Reject any match where month > 12 or day > 31 to avoid
+      // misreading registration numbers or other 8-digit fields
       let dateStr=meetDate;
       const dm=line.slice(75).match(/(\d{8})/);
-      if(dm){const d=dm[1];dateStr=`${d.slice(4,8)}-${d.slice(0,2)}-${d.slice(2,4)}`;}
+      if(dm){
+        const d=dm[1];
+        const mm=parseInt(d.slice(0,2),10);
+        const dd=parseInt(d.slice(2,4),10);
+        const yyyy=parseInt(d.slice(4,8),10);
+        if(mm>=1&&mm<=12&&dd>=1&&dd<=31&&yyyy>=1990&&yyyy<=2099){
+          dateStr=`${yyyy}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+        }
+        // else: invalid date — silently fall back to meetDate
+      }
       if(t&&t>1){
         parsed.push({
           lastName:currentSwimmer.lastName,
