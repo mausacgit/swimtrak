@@ -910,7 +910,7 @@ function renderSwimmerDetailContent(id, tab){
         if(r.splits&&r.splits.some(x=>x!==null)){
           sh=`<div class="splits-grid">${r.splits.map((s,i)=>{if(s===null)return'';const prev=i>0&&r.splits[i-1]!==null?r.splits[i-1]:null;const d=prev?s-prev:null;return`<div class="split-box"><div class="split-leg">${legs[i]}</div><div class="split-time">${formatTime(s)}</div>${d!==null?`<div class="split-delta ${d>0?'dpos':'dneg'}">${d>0?'+':''}${d.toFixed(2)}</div>`:''}</div>`;}).join('')}</div>`;
         }
-        return`<tr><td>${r.date}</td><td>${r.event}</td><td>${courseBadge(r.course||'S')}</td><td style="white-space:nowrap;font-weight:700">${formatTime(r.finalTime)}${isPB?'<span class="pb-badge">PB</span>':''}</td><td>${esc(r.meet||'—')}</td><td>${sh}</td><td><button class="btn xs danger" onclick="deleteRace('${r.id}',${id})" title="Delete race">✕</button></td></tr>`;
+        return`<tr><td>${r.date}</td><td>${r.event}</td><td>${courseBadge(r.course||'S')}</td><td style="white-space:nowrap;font-weight:700">${formatTime(r.finalTime)}${isPB?'<span class="pb-badge">PB</span>':''}</td><td>${esc(r.meet||'—')}</td><td>${sh}</td><td style="white-space:nowrap"><button class="btn xs" onclick="editRace('${r.id}',${id})" title="Edit">✎</button> <button class="btn xs danger" onclick="deleteRace('${r.id}',${id})" title="Delete">✕</button></td></tr>`;
       }).join('')
     }</tbody></table></div>`;
 
@@ -973,6 +973,48 @@ function renderSwimmerDetailContent(id, tab){
 }
 function closeDetail(){document.getElementById('swimmer-detail').style.display='none';document.getElementById('swimmer-grid').style.display='grid';}
 function deleteRace(raceId,swId){if(!confirm('Delete this race result?'))return;races=races.filter(r=>String(r.id)!==String(raceId));save();renderSwimmerDetailContent(swId,'races');}
+
+function editRace(raceId,swId){
+  const r=races.find(x=>String(x.id)===String(raceId));if(!r)return;
+  // Build a compact modal in the detail panel
+  const existingModal=document.getElementById('race-edit-modal');
+  if(existingModal)existingModal.remove();
+  const modal=document.createElement('div');
+  modal.id='race-edit-modal';
+  modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  modal.innerHTML=`<div style="background:#1a1d27;border:1px solid #3d4460;border-radius:12px;padding:20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto">
+    <p style="font-size:14px;font-weight:700;margin-bottom:14px">Edit Race Result</p>
+    <div class="field"><label>Date (YYYY-MM-DD)</label><input type="text" id="er-date" value="${esc(r.date||'')}" placeholder="YYYY-MM-DD"/></div>
+    <div class="field"><label>Event</label><select id="er-event">${EVENTS.map(e=>`<option${e===r.event?' selected':''}>${esc(e)}</option>`).join('')}</select></div>
+    <div class="field"><label>Course</label><select id="er-course"><option value="S"${(r.course||'S')==='S'?' selected':''}>SC</option><option value="L"${r.course==='L'?' selected':''}>LC</option></select></div>
+    <div class="field"><label>Final time (mm:ss.xx or ss.xx)</label><input type="text" id="er-time" value="${esc(formatTime(r.finalTime))}"/></div>
+    <div class="field"><label>Meet</label><input type="text" id="er-meet" value="${esc(r.meet||'')}"/></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn primary sm" onclick="saveRaceEdit('${raceId}',${swId})">Save</button>
+      <button class="btn sm" onclick="document.getElementById('race-edit-modal').remove()">Cancel</button>
+    </div>
+    <p id="er-msg" style="font-size:11px;color:#fca5a5;margin-top:8px"></p>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+}
+
+function saveRaceEdit(raceId,swId){
+  const r=races.find(x=>String(x.id)===String(raceId));if(!r)return;
+  const newDate=document.getElementById('er-date').value.trim();
+  const newEvent=document.getElementById('er-event').value;
+  const newCourse=document.getElementById('er-course').value;
+  const newTimeStr=document.getElementById('er-time').value.trim();
+  const newMeet=document.getElementById('er-meet').value.trim();
+  const newTime=parseTime(newTimeStr);
+  if(!newTime||isNaN(newTime)){document.getElementById('er-msg').textContent='Invalid time format.';return;}
+  // Validate date loosely
+  if(newDate&&!/^\d{4}-\d{2}-\d{2}$/.test(newDate)){document.getElementById('er-msg').textContent='Date must be YYYY-MM-DD.';return;}
+  r.date=newDate;r.event=newEvent;r.course=newCourse;r.finalTime=newTime;r.meet=newMeet;
+  save();
+  document.getElementById('race-edit-modal').remove();
+  renderSwimmerDetailContent(swId,'races');
+}
 function deleteTrainingSet(tId,swId){
   const t=trainings.find(x=>x.id===tId);if(!t)return;
   const n=(t.swimmerIds||[]).length;
@@ -1165,10 +1207,14 @@ function parseTMContent(content,filename){
     // B1 — meet header
     if(rec==='B1'){
       meetName=line.slice(2,42).trim();
-      const dates=line.match(/\d{8}/g);
-      if(dates&&dates.length){
-        const d=dates[0]; // MMDDYYYY
-        meetDate=`${d.slice(4,8)}-${d.slice(0,2)}-${d.slice(2,4)}`;
+      // Try all 8-digit sequences; use the first one that is a plausible date
+      const dates=line.match(/\d{8}/g)||[];
+      for(const d of dates){
+        const mm=parseInt(d.slice(0,2),10),dd=parseInt(d.slice(2,4),10),yyyy=parseInt(d.slice(4,8),10);
+        if(mm>=1&&mm<=12&&dd>=1&&dd<=31&&yyyy>=1990&&yyyy<=2099){
+          meetDate=`${yyyy}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+          break;
+        }
       }
       meetCourse=(line.slice(50,55).indexOf('L')>=0)?'L':'S';
     }
@@ -1206,10 +1252,21 @@ function parseTMContent(content,filename){
       // Time at pos 3-11 in seconds (e.g. "   40.10S" or "   98.52S")
       const timeRaw=line.slice(3,12).replace(/[^0-9.]/g,'').trim();
       const t=timeRaw?parseFloat(timeRaw):null;
-      // Date near pos 75-95: MMDDYYYY
+      // Date in E2 record: MMDDYYYY — validate before using
+      // Reject any match where month > 12 or day > 31 to avoid
+      // misreading registration numbers or other 8-digit fields
       let dateStr=meetDate;
       const dm=line.slice(75).match(/(\d{8})/);
-      if(dm){const d=dm[1];dateStr=`${d.slice(4,8)}-${d.slice(0,2)}-${d.slice(2,4)}`;}
+      if(dm){
+        const d=dm[1];
+        const mm=parseInt(d.slice(0,2),10);
+        const dd=parseInt(d.slice(2,4),10);
+        const yyyy=parseInt(d.slice(4,8),10);
+        if(mm>=1&&mm<=12&&dd>=1&&dd<=31&&yyyy>=1990&&yyyy<=2099){
+          dateStr=`${yyyy}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+        }
+        // else: invalid date — silently fall back to meetDate
+      }
       if(t&&t>1){
         parsed.push({
           lastName:currentSwimmer.lastName,
