@@ -532,6 +532,14 @@ canvas{background:#1a1d27}
         <label>Team / School name</label>
         <input type="text" id="ef-team-name" value="St. Stephen&#39;s Manila Aquaknights"/>
       </div>
+      <div class="field" style="max-width:120px">
+        <label>Seed time course</label>
+        <select id="ef-course" onchange="renderEntryFormTab()">
+          <option value="">Best overall</option>
+          <option value="S">SC only</option>
+          <option value="L">LC only</option>
+        </select>
+      </div>
     </div>
   </div>
   <div class="card">
@@ -983,13 +991,12 @@ function updateSplitFields(){
 }
 function renderPendingEntries(){
   const wrap=document.getElementById('pending-entries-wrap');if(!wrap)return;
-  // Group pending (not done) entries by meet
   const open=pendingEntries.filter(p=>!p.done);
   if(!open.length){wrap.innerHTML='';return;}
   const byMeet={};
   open.forEach(p=>{(byMeet[p.meetName]=byMeet[p.meetName]||[]).push(p);});
   wrap.innerHTML=Object.entries(byMeet).map(([meetName,entries])=>{
-    const sorted=[...entries].sort((a,b)=>{
+    const sortedEntries=[...entries].sort((a,b)=>{
       const swA=swimmers.find(s=>s.id===a.swimmerId);const swB=swimmers.find(s=>s.id===b.swimmerId);
       const nameA=swA?(swA.lastName||displayName(swA)):'';const nameB=swB?(swB.lastName||displayName(swB)):'';
       return nameA.localeCompare(nameB)||(a.eventNo-b.eventNo);
@@ -998,22 +1005,45 @@ function renderPendingEntries(){
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">'+
         '<p class="card-title" style="margin:0;flex:1">Pending entries — '+esc(meetName)+' ('+entries.length+')</p>'+
         '<button class="btn xs" onclick="copyHeatList('+JSON.stringify(meetName).replace(/"/g,'&quot;')+')">Copy heat list</button>'+
+        '<button class="btn xs danger" onclick="pendingClearMeet('+JSON.stringify(meetName).replace(/"/g,'&quot;')+')" title="Remove all pending for this meet">✕ Clear meet</button>'+
       '</div>'+
       '<div style="display:flex;flex-direction:column;gap:5px">'+
-        sorted.map(p=>{
+        sortedEntries.map(p=>{
           const sw=swimmers.find(s=>s.id===p.swimmerId);
           const name=sw?lastFirstName(sw):'Unknown';
           const seedDisplay=p.seedTime?p.seedTime:'NT';
-          return'<div style="display:flex;align-items:center;gap:8px;background:#252a38;border-radius:6px;padding:6px 10px;flex-wrap:wrap">'+
+          return'<div style="display:flex;align-items:center;gap:6px;background:#252a38;border-radius:6px;padding:6px 10px;flex-wrap:wrap">'+
             '<span style="font-size:11px;color:#8892a4;font-family:monospace;min-width:36px">'+p.eventNo+'</span>'+
             '<span style="font-size:12px;font-weight:600;flex:1;min-width:120px">'+esc(name)+'</span>'+
             '<span style="font-size:11px;color:#e2e8f0">'+esc(p.event)+'</span>'+
-            '<span style="font-size:11px;color:#8892a4;font-family:monospace">'+esc(seedDisplay)+'</span>'+
+            '<span style="font-size:11px;color:#8892a4;font-family:monospace;cursor:pointer" title="Edit seed time" onclick="pendingEditSeed('+JSON.stringify(p.id)+')">'+esc(seedDisplay)+' ✎</span>'+
             '<button class="btn xs primary" onclick="efLogPending('+JSON.stringify(p.id)+')">Log time</button>'+
+            '<button class="btn xs danger" onclick="pendingRemoveEntry('+JSON.stringify(p.id)+')" title="Remove this entry">✕</button>'+
           '</div>';
         }).join('')+
       '</div></div>';
   }).join('');
+}
+
+function pendingRemoveEntry(id){
+  pendingEntries=pendingEntries.filter(p=>p.id!==id);
+  save();renderPendingEntries();
+}
+function pendingClearMeet(meetName){
+  if(!confirm('Remove all pending entries for '+meetName+'?'))return;
+  pendingEntries=pendingEntries.filter(p=>p.meetName!==meetName||p.done);
+  save();renderPendingEntries();
+}
+function pendingEditSeed(id){
+  const p=pendingEntries.find(x=>x.id===id);if(!p)return;
+  const input=prompt('Edit seed time for '+p.event+'\n(mm:ss.xx or ss.xx, leave blank for NT):',p.seedTime||'');
+  if(input===null)return;
+  const trimmed=input.trim();
+  if(!trimmed){p.seedTime='';save();renderPendingEntries();return;}
+  const t=parseTime(trimmed);
+  if(!t||isNaN(t)){alert('Invalid time format.');return;}
+  p.seedTime=formatTime(t);
+  save();renderPendingEntries();
 }
 
 function efLogPending(pendingId){
@@ -2476,6 +2506,9 @@ const ENTRY_EVENT_MAP={'100m Freestyle':{boys:101,girls:102,day:1},'200m Breasts
 
 // Manual entries added per swimmer: {swimmerId: [{event, seedTime}]}
 let efManualEntries={};
+// Overrides for PB-based entries: {swimmerId: {eventName: 'mm:ss.xx'}}
+// Used when a swimmer has a faster unrecorded time from an untracked meet
+let efOverrides={};
 
 function renderEntryFormTab(){
   const wrap=document.getElementById('ef-swimmer-list');if(!wrap)return;
@@ -2486,7 +2519,8 @@ function renderEntryFormTab(){
 
   wrap.innerHTML=sorted.map(s=>{
     const sid=s.id;
-    const sr=races.filter(r=>r.swimmerId===sid&&r.finalTime);
+    const efCourse=(document.getElementById('ef-course')||{}).value||'';
+    const sr=races.filter(r=>r.swimmerId===sid&&r.finalTime&&(!efCourse||r.course===efCourse));
     const evsWithPB=[...new Set(sr.map(r=>r.event))].filter(e=>ENTRY_EVENT_MAP[e]);
     const manual=efManualEntries[sid]||[];
     const manualEvNames=manual.map(m=>m.event);
@@ -2511,11 +2545,20 @@ function renderEntryFormTab(){
       if(item.kind==='pb'){
         const ev=item.ev,evNo=item.evNo;
         const best=[...sr.filter(r=>r.event===ev)].sort((a,b)=>a.finalTime-b.finalTime)[0];
-        const st=best?formatTime(best.finalTime):'—';
+        const pbTime=best?formatTime(best.finalTime):'—';
+        const override=(efOverrides[sid]||{})[ev];
+        const st=override||pbTime;
+        const seedAttr=override?' data-seed="'+esc(override)+'"':'';
+        const timeColor=override?'#fbbf24':'#8892a4';
+        const resetIcon=override
+          ?'<span style="color:#8892a4;cursor:pointer;font-weight:700;font-size:10px" title="Reset to PB ('+esc(pbTime)+')" onclick="efResetOverride('+sid+',\''+esc(ev).replace(/'/g,"\\'")+'\');event.preventDefault()">↺</span>'
+          :'';
         return'<label style="display:inline-flex;align-items:center;gap:4px;background:#252a38;border:1px solid #3d4460;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">'+
-          '<input type="checkbox" id="ef-ev-'+sid+'-'+evNo+'" data-swimmer="'+sid+'" data-event="'+esc(ev)+'" checked style="width:auto;height:auto">'+
+          '<input type="checkbox" id="ef-ev-'+sid+'-'+evNo+'" data-swimmer="'+sid+'" data-event="'+esc(ev)+'"'+seedAttr+' checked style="width:auto;height:auto">'+
           '<span style="color:#e2e8f0">'+evNo+' — '+ev+'</span>'+
-          '<span style="color:#8892a4;font-family:monospace">'+st+'</span>'+
+          '<span style="color:'+timeColor+';font-family:monospace">'+esc(st)+'</span>'+
+          '<span style="color:#8892a4;cursor:pointer;font-size:10px" title="Edit seed time" onclick="efEditOverride('+sid+',\''+esc(ev).replace(/'/g,"\\'")+'\',\''+esc(st).replace(/'/g,"\\'")+'\');event.preventDefault()">✎</span>'+
+          resetIcon+
         '</label>';
       } else {
         const ev=item.ev,evNo=item.evNo,mi=item.mi;
@@ -2608,6 +2651,35 @@ function efAddManual(sid){
 function efRemoveManual(sid,idx){
   if(!efManualEntries[sid])return;
   efManualEntries[sid].splice(idx,1);
+  const state=efCaptureState();
+  renderEntryFormTab();
+  efRestoreState(state);
+}
+
+// Override a PB-based seed time — used when a swimmer has a faster
+// unrecorded time from a meet not logged in the tracker
+function efEditOverride(sid,ev,currentValue){
+  const input=prompt('Entry time for '+ev+' (mm:ss.xx or ss.xx):',currentValue||'');
+  if(input===null)return; // cancelled
+  const trimmed=input.trim();
+  if(!trimmed){
+    // Empty input = clear override, revert to PB
+    efResetOverride(sid,ev);
+    return;
+  }
+  const t=parseTime(trimmed);
+  if(!t||isNaN(t)){alert('Invalid time format. Use mm:ss.xx or ss.xx.');return;}
+  if(!efOverrides[sid])efOverrides[sid]={};
+  efOverrides[sid][ev]=formatTime(t);
+  const state=efCaptureState();
+  renderEntryFormTab();
+  efRestoreState(state);
+}
+function efResetOverride(sid,ev){
+  if(efOverrides[sid]){
+    delete efOverrides[sid][ev];
+    if(!Object.keys(efOverrides[sid]).length)delete efOverrides[sid];
+  }
   const state=efCaptureState();
   renderEntryFormTab();
   efRestoreState(state);
