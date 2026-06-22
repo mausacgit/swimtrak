@@ -1503,11 +1503,21 @@ function renderPBChart(){
     ctx.beginPath();
     raceSet.forEach((r,i)=>{const x=toX(dateIdx(r.date));const y=toY(r.finalTime);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
     ctx.stroke();ctx.setLineDash([]);
-    // dots
+    // dots + time labels
     let scBest=Infinity;
-    raceSet.forEach(r=>{const x=toX(dateIdx(r.date));const y=toY(r.finalTime);const isPB=r.finalTime<scBest;if(r.finalTime<scBest)scBest=r.finalTime;
-      ctx.beginPath();ctx.arc(x,y,isPB?5:3.5,0,Math.PI*2);ctx.fillStyle=isPB?'#065f46':color;ctx.fill();
-      ctx.beginPath();ctx.arc(x,y,isPB?5:3.5,0,Math.PI*2);ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    raceSet.forEach(r=>{
+      const x=toX(dateIdx(r.date));const y=toY(r.finalTime);
+      const isPB=r.finalTime<scBest;if(r.finalTime<scBest)scBest=r.finalTime;
+      const r2=isPB?5:3.5;
+      ctx.beginPath();ctx.arc(x,y,r2,0,Math.PI*2);ctx.fillStyle=isPB?'#065f46':color;ctx.fill();
+      ctx.beginPath();ctx.arc(x,y,r2,0,Math.PI*2);ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+      // time label — above dot normally, flip below if too close to top edge
+      const label=formatTime(r.finalTime);
+      ctx.font=(isPB?'bold ':'')+'9px -apple-system,sans-serif';
+      ctx.fillStyle=isPB?'#34d399':color;
+      ctx.textAlign='center';
+      const labelY=y-r2-4;
+      ctx.fillText(label,x,labelY<p.t+8?y+r2+10:labelY);
     });
   }
   drawLine(scRaces,'#3b82f6',false);
