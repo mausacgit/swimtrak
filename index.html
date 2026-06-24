@@ -2608,6 +2608,7 @@ let efMeetEvents=[];
 // Per-swimmer entry times: {swimmerId: {eventName: 'mm:ss.xx'|''}}
 let efSwimmerEntries={};
 let efExpandedSwimmers=new Set(); // tracks which swimmer cards are expanded
+let efSelectedSwimmers=new Set(); // tracks which swimmers are included in the form
 
 // ── Event list management ──────────────────────────────────
 function renderEfEventList(){
@@ -2775,13 +2776,13 @@ function renderEntryFormTab(){
       '</div>';
     }).join('');
     const isExpanded=efExpandedSwimmers.has(sid);
-    const entryCount=Object.keys(entries).filter(k=>entries[k]!==null).length;
-    const summary=entryCount?entryCount+' event'+(entryCount>1?'s':''):'No events';
-    return'<div style="background:#1a1d27;border:1px solid '+(Object.keys(entries).length>0?'#3b82f6':'#2d3348')+';border-radius:8px;margin-bottom:6px;overflow:hidden">'+
+    const entryCount=Object.keys(entries).length;
+    const summary=efSelectedSwimmers.has(sid)?(entryCount?entryCount+' event'+(entryCount>1?'s selected':'selected'):'Selected — pick events'):'Not selected';
+    return'<div style="background:#1a1d27;border:1px solid '+(efSelectedSwimmers.has(sid)?'#3b82f6':'#2d3348')+';border-radius:8px;margin-bottom:6px;overflow:hidden">'+
       // Header row — always visible
       '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer" onclick="efToggleExpand('+sid+',event)">'+
         '<input type="checkbox" id="ef-sw-'+sid+'" onchange="efToggleSwimmer('+sid+')" onclick="event.stopPropagation()" style="width:auto;height:auto;flex-shrink:0" '+
-          (Object.keys(entries).length>0?'checked':'')+'>'+
+          (efSelectedSwimmers.has(sid)?'checked':'')+'>'+
         '<span style="font-size:13px;font-weight:700;color:#e2e8f0;flex:1">'+esc(lastFirstName(s))+'</span>'+
         '<span class="badge '+(s.gender==='M'?'bb':'br')+'" style="font-size:10px">'+(s.gender==='M'?'M':'F')+'</span>'+
         '<span class="badge ba" style="font-size:10px">'+(s.group||'')+'</span>'+
@@ -2880,22 +2881,26 @@ function efSelectAllSwimmerEvents(sid){
 
 function efToggleSwimmer(sid){
   const cb=document.getElementById('ef-sw-'+sid);
-  if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
   if(cb.checked){
-    // Select all events, auto-filling PBs where available
-    efSelectAllSwimmerEvents(sid);
+    efSelectedSwimmers.add(sid);
+    // Expand the card so they can pick events
+    efExpandedSwimmers.add(sid);
   } else {
-    // Deselect all events
+    efSelectedSwimmers.delete(sid);
+    // Also clear any event entries and collapse
     efSwimmerEntries[sid]={};
+    efExpandedSwimmers.delete(sid);
   }
   renderEntryFormTab();
 }
 function efSelectAll(){
-  swimmers.forEach(s=>efAutoFillSwimmer(s.id));
+  swimmers.forEach(s=>{efSelectedSwimmers.add(s.id);efExpandedSwimmers.add(s.id);});
   renderEntryFormTab();
 }
 function efClearAll(){
+  efSelectedSwimmers.clear();
   efSwimmerEntries={};
+  efExpandedSwimmers.clear();
   renderEntryFormTab();
 }
 
@@ -2912,9 +2917,8 @@ function generateEntryForm(){
       // Check if the checkbox for this swimmer+event is checked
       const cb=document.getElementById('efse-cb-'+sid+'-'+ev.no);
       if(!cb||!cb.checked)return;
-      // Check if swimmer-level checkbox is checked
-      const swCb=document.getElementById('ef-sw-'+sid);
-      if(swCb&&!swCb.checked)return;
+      // Only include if swimmer is selected
+      if(!efSelectedSwimmers.has(sid))return;
 
       const swimmer=swimmers.find(x=>x.id===sid);if(!swimmer)return;
       const gender=swimmer.gender||'M';
