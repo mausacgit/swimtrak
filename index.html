@@ -2573,9 +2573,11 @@ const ENTRY_EVENT_MAP={'100m Freestyle':{boys:101,girls:102,day:1},'200m Breasts
 
 // Manual entries added per swimmer: {swimmerId: [{event, seedTime}]}
 let efManualEntries={};
-// Overrides for PB-based entries: {swimmerId: {eventName: 'mm:ss.xx'}}
-// Used when a swimmer has a faster unrecorded time from an untracked meet
+// Overrides per entry: {swimmerId: {eventName: {time, evNo, evName}}}
+// Covers: custom seed time, custom event number, custom event name
 let efOverrides={};
+// Track which chip is currently being edited (to show inline editor)
+let efEditingChip=null; // 'sid:ev' string
 
 function renderEntryFormTab(){
   const wrap=document.getElementById('ef-swimmer-list');if(!wrap)return;
@@ -2609,33 +2611,49 @@ function renderEntryFormTab(){
     chipItems.sort((a,b)=>a.evNo-b.evNo);
 
     const allChips=chipItems.map(item=>{
+      const chipKey=sid+':'+item.ev;
+      const isEditing=(efEditingChip===chipKey);
+      const ov=(efOverrides[sid]||{})[item.ev]||{};
+      const dispEvNo=ov.evNo!=null?ov.evNo:item.evNo;
+      const dispEvName=ov.evName||item.ev;
+      const isModified=ov.evNo!=null||ov.evName||ov.time;
+
       if(item.kind==='pb'){
-        const ev=item.ev,evNo=item.evNo;
+        const ev=item.ev;
         const best=[...sr.filter(r=>r.event===ev)].sort((a,b)=>a.finalTime-b.finalTime)[0];
         const pbTime=best?formatTime(best.finalTime):'—';
-        const override=(efOverrides[sid]||{})[ev];
-        const st=override||pbTime;
-        const seedAttr=override?' data-seed="'+esc(override)+'"':'';
-        const timeColor=override?'#fbbf24':'#8892a4';
-        const resetIcon=override
-          ?'<span style="color:#8892a4;cursor:pointer;font-weight:700;font-size:10px" title="Reset to PB ('+esc(pbTime)+')" onclick="efResetOverride('+sid+',\''+esc(ev).replace(/'/g,"\\'")+'\');event.preventDefault()">↺</span>'
-          :'';
-        return'<label style="display:inline-flex;align-items:center;gap:4px;background:#252a38;border:1px solid #3d4460;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">'+
-          '<input type="checkbox" id="ef-ev-'+sid+'-'+evNo+'" data-swimmer="'+sid+'" data-event="'+esc(ev)+'"'+seedAttr+' checked style="width:auto;height:auto">'+
-          '<span style="color:#e2e8f0">'+evNo+' — '+ev+'</span>'+
-          '<span style="color:'+timeColor+';font-family:monospace">'+esc(st)+'</span>'+
-          '<span style="color:#8892a4;cursor:pointer;font-size:10px" title="Edit seed time" onclick="efEditOverride('+sid+',\''+esc(ev).replace(/'/g,"\\'")+'\',\''+esc(st).replace(/'/g,"\\'")+'\');event.preventDefault()">✎</span>'+
-          resetIcon+
-        '</label>';
+        const dispTime=ov.time||pbTime;
+        const seedAttr=ov.time?' data-seed="'+esc(ov.time)+'"':'';
+        const timeColor=ov.time?'#fbbf24':'#8892a4';
+        const borderCol=isModified?'#f59e0b':'#3d4460';
+        return'<div style="display:inline-flex;flex-direction:column;gap:2px">'+
+          '<label style="display:inline-flex;align-items:center;gap:4px;background:#252a38;border:1px solid '+borderCol+';border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">'+
+            '<input type="checkbox" id="ef-ev-'+sid+'-'+dispEvNo+'" data-swimmer="'+sid+'" data-event="'+esc(ev)+'"'+seedAttr+' checked style="width:auto;height:auto">'+
+            '<span style="color:#e2e8f0;font-family:monospace;font-weight:600">'+dispEvNo+'</span>'+
+            '<span style="color:#e2e8f0"> — '+esc(dispEvName)+'</span>'+
+            '<span style="color:'+timeColor+';font-family:monospace">'+esc(dispTime)+'</span>'+
+            '<span style="color:#60a5fa;cursor:pointer;font-size:10px;padding:0 2px" onclick="efToggleChipEdit('+sid+',"'+esc(ev)+'");event.preventDefault()">'+(isEditing?'▲':'✎')+'</span>'+
+            (isModified?'<span style="color:#8892a4;cursor:pointer;font-weight:700;font-size:10px" onclick="efResetChipOverride('+sid+',"'+esc(ev)+'");event.preventDefault()">↺</span>':'')+
+          '</label>'+
+          (isEditing?efChipEditRow(sid,ev,dispEvNo,dispEvName,dispTime,pbTime):'')+
+        '</div>';
       } else {
         const ev=item.ev,evNo=item.evNo,mi=item.mi;
-        const st=item.seedTime||'NT';
-        return'<label style="display:inline-flex;align-items:center;gap:4px;background:#1e2a3a;border:1px solid #3b82f6;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">'+
-          '<input type="checkbox" id="ef-man-'+sid+'-'+mi+'" data-swimmer="'+sid+'" data-event="'+esc(ev)+'" data-seed="'+esc(item.seedTime||'')+'" checked style="width:auto;height:auto">'+
-          '<span style="color:#93c5fd">'+evNo+' — '+ev+'</span>'+
-          '<span style="color:#8892a4;font-family:monospace">'+esc(st)+'</span>'+
-          '<span style="color:#fca5a5;cursor:pointer;font-weight:700" onclick="efRemoveManual('+sid+','+mi+');event.preventDefault()">✕</span>'+
-        '</label>';
+        const dispTime=ov.time||item.seedTime||'NT';
+        const seedAttr='data-seed="'+esc(ov.time||item.seedTime||'')+'"';
+        const borderCol=isModified?'#f59e0b':'#3b82f6';
+        return'<div style="display:inline-flex;flex-direction:column;gap:2px">'+
+          '<label style="display:inline-flex;align-items:center;gap:4px;background:#1e2a3a;border:1px solid '+borderCol+';border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">'+
+            '<input type="checkbox" id="ef-man-'+sid+'-'+mi+'" data-swimmer="'+sid+'" data-event="'+esc(ev)+'" '+seedAttr+' checked style="width:auto;height:auto">'+
+            '<span style="color:#93c5fd;font-family:monospace;font-weight:600">'+dispEvNo+'</span>'+
+            '<span style="color:#93c5fd"> — '+esc(dispEvName)+'</span>'+
+            '<span style="color:#8892a4;font-family:monospace">'+esc(dispTime)+'</span>'+
+            '<span style="color:#60a5fa;cursor:pointer;font-size:10px;padding:0 2px" onclick="efToggleChipEdit('+sid+',"'+esc(ev)+'");event.preventDefault()">'+(isEditing?'▲':'✎')+'</span>'+
+            (isModified?'<span style="color:#8892a4;cursor:pointer;font-weight:700;font-size:10px" onclick="efResetChipOverride('+sid+',"'+esc(ev)+'");event.preventDefault()">↺</span>':'')+
+            '<span style="color:#fca5a5;cursor:pointer;font-weight:700" onclick="efRemoveManual('+sid+','+mi+');event.preventDefault()">✕</span>'+
+          '</label>'+
+          (isEditing?efChipEditRow(sid,ev,dispEvNo,dispEvName,dispTime,''):'')+
+        '</div>';
       }
     }).join('');
 
@@ -2725,28 +2743,61 @@ function efRemoveManual(sid,idx){
 
 // Override a PB-based seed time — used when a swimmer has a faster
 // unrecorded time from a meet not logged in the tracker
-function efEditOverride(sid,ev,currentValue){
-  const input=prompt('Entry time for '+ev+' (mm:ss.xx or ss.xx):',currentValue||'');
-  if(input===null)return; // cancelled
-  const trimmed=input.trim();
-  if(!trimmed){
-    // Empty input = clear override, revert to PB
-    efResetOverride(sid,ev);
-    return;
-  }
-  const t=parseTime(trimmed);
-  if(!t||isNaN(t)){alert('Invalid time format. Use mm:ss.xx or ss.xx.');return;}
-  if(!efOverrides[sid])efOverrides[sid]={};
-  efOverrides[sid][ev]=formatTime(t);
+// Build inline edit row HTML for a chip
+function efChipEditRow(sid,ev,currentEvNo,currentEvName,currentTime,pbTime){
+  const pbHint=pbTime&&pbTime!=='—'?' (PB: '+pbTime+')':'';
+  return'<div id="ef-edit-'+sid+'-'+btoa(ev).replace(/=/g,'')+'" style="background:#161a27;border:1px solid #3d4460;border-radius:0 0 6px 6px;padding:7px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin-top:-2px">'+
+    '<div class="field" style="margin:0;min-width:60px;max-width:70px"><label style="font-size:10px">Ev. No.</label>'+
+    '<input type="number" id="efce-no-'+sid+'" value="'+currentEvNo+'" style="height:26px;font-size:12px;padding:0 5px;width:100%"></div>'+
+    '<div class="field" style="margin:0;flex:1;min-width:120px"><label style="font-size:10px">Event name</label>'+
+    '<input type="text" id="efce-name-'+sid+'" value="'+esc(currentEvName)+'" style="height:26px;font-size:12px;padding:0 6px;width:100%"></div>'+
+    '<div class="field" style="margin:0;min-width:90px;max-width:110px"><label style="font-size:10px">Entry time'+pbHint+'</label>'+
+    '<input type="text" id="efce-time-'+sid+'" value="'+esc(currentTime)+'" placeholder="mm:ss.xx" style="height:26px;font-size:12px;padding:0 6px;width:100%"></div>'+
+    '<button class="btn xs primary" onclick="efSaveChipEdit('+sid+',' +JSON.stringify(ev)+')">Save</button>'+
+    '<button class="btn xs" onclick="efToggleChipEdit('+sid+','+JSON.stringify(ev)+')">Cancel</button>'+
+  '</div>';
+}
+
+function efToggleChipEdit(sid,ev){
+  const key=sid+':'+ev;
+  efEditingChip=(efEditingChip===key)?null:key;
   const state=efCaptureState();
   renderEntryFormTab();
   efRestoreState(state);
 }
-function efResetOverride(sid,ev){
+
+function efSaveChipEdit(sid,ev){
+  const newNo=parseInt((document.getElementById('efce-no-'+sid)||{}).value);
+  const newName=((document.getElementById('efce-name-'+sid)||{}).value||'').trim();
+  const newTimeStr=((document.getElementById('efce-time-'+sid)||{}).value||'').trim();
+  if(!efOverrides[sid])efOverrides[sid]={};
+  const entry=efOverrides[sid][ev]||{};
+  // event number
+  if(!isNaN(newNo)&&newNo>0)entry.evNo=newNo; else delete entry.evNo;
+  // event name
+  if(newName&&newName!==ev)entry.evName=newName; else delete entry.evName;
+  // time
+  if(newTimeStr){
+    const t=parseTime(newTimeStr);
+    if(!t||isNaN(t)){alert('Invalid time format. Use mm:ss.xx or ss.xx.');return;}
+    entry.time=formatTime(t);
+  } else {
+    delete entry.time;
+  }
+  if(Object.keys(entry).length)efOverrides[sid][ev]=entry;
+  else{delete efOverrides[sid][ev];if(!Object.keys(efOverrides[sid]).length)delete efOverrides[sid];}
+  efEditingChip=null;
+  const state=efCaptureState();
+  renderEntryFormTab();
+  efRestoreState(state);
+}
+
+function efResetChipOverride(sid,ev){
   if(efOverrides[sid]){
     delete efOverrides[sid][ev];
     if(!Object.keys(efOverrides[sid]).length)delete efOverrides[sid];
   }
+  efEditingChip=null;
   const state=efCaptureState();
   renderEntryFormTab();
   efRestoreState(state);
@@ -2773,10 +2824,15 @@ function generateEntryForm(){
     const swimmer=swimmers.find(s=>s.id===sid);if(!swimmer)return;
     const ei=ENTRY_EVENT_MAP[evName];if(!ei)return;
     const gender=swimmer.gender||'M';
-    const evNo=gender==='M'?ei.boys:ei.girls;
-    // Manual entries carry their own seed time via data-seed (may be empty = NT)
+    // Use overridden evNo/evName if set
+    const chipOv=(efOverrides[sid]||{})[evName]||{};
+    const evNo=chipOv.evNo!=null?chipOv.evNo:(gender==='M'?ei.boys:ei.girls);
+    const evDisplayName=chipOv.evName||evName;
+    // Seed time: override > data-seed > best PB
     let st='';
-    if(cb.hasAttribute('data-seed')){
+    if(chipOv.time){
+      st=chipOv.time;
+    } else if(cb.hasAttribute('data-seed')){
       st=cb.dataset.seed||'';
     } else {
       const sr=races.filter(r=>r.swimmerId===sid&&r.event===evName&&r.finalTime);
@@ -2812,7 +2868,7 @@ function generateEntryForm(){
       }
     }
     bday=bdayFormatted;
-    entries.push({dn,bday,age,gender:gender==='M'?'M':'F',evNo,evName,st,day:ei.day,swimmerId:sid});
+    entries.push({dn,bday,age,gender:gender==='M'?'M':'F',evNo,evName:evDisplayName,st,day:ei.day,swimmerId:sid});
   });
   if(!entries.length){alert('No events selected.');return;}
   // Sort: alphabetically by last name, then within each swimmer by event number
