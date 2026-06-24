@@ -547,7 +547,7 @@ canvas{background:#1a1d27}
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
       <p class="card-title" style="margin:0;flex:1">Meet event list</p>
       <button class="btn xs" onclick="efLoadDefaultEvents()">Load default events</button>
-      <button class="btn xs primary" onclick="efLoadSSHSJune2026()">Load SSHS SC Tryouts 2026</button>
+      <span id="ef-preset-buttons"></span>
     </div>
     <p style="font-size:11px;color:#8892a4;margin-bottom:8px">Add each event for this meet. Swimmers will pick from this list.</p>
     <div id="ef-event-list-wrap"></div>
@@ -2612,6 +2612,7 @@ let efExpandedSwimmers=new Set(); // tracks which swimmer cards are expanded
 // ── Event list management ──────────────────────────────────
 function renderEfEventList(){
   const wrap=document.getElementById('ef-event-list-wrap');if(!wrap)return;
+  efRenderPresetButtons();
   // Populate the tracker event dropdown
   const trackerSel=document.getElementById('ef-new-tracker-event');
   if(trackerSel&&trackerSel.options.length<=1){
@@ -2653,6 +2654,48 @@ function efRemoveMeetEvent(idx){
   efMeetEvents.splice(idx,1);
   renderEfEventList();
   renderEntryFormTab();
+}
+
+// Preset registry — each entry can be dismissed per-device via localStorage
+const EF_PRESETS=[
+  {
+    id:'sshs_sc_tryouts_2026_june',
+    label:'Load SSHS SC Tryouts 2026',
+    meetName:'SSHS SHORT COURSE TRYOUTS 2026 (JUNE)',
+    teamName:"St. Stephen's Manila Aquaknights",
+    events:[{"no":1,"name":"200 Individual Medley Girls","trackerEvent":"200m IM"},{"no":2,"name":"200 Individual Medley Boys","trackerEvent":"200m IM"},{"no":3,"name":"100 Backstroke Girls","trackerEvent":"100m Backstroke"},{"no":4,"name":"100 Backstroke Boys","trackerEvent":"100m Backstroke"},{"no":5,"name":"50 Freestyle Girls","trackerEvent":"50m Freestyle"},{"no":6,"name":"50 Freestyle Boys","trackerEvent":"50m Freestyle"},{"no":7,"name":"100 Butterfly Girls","trackerEvent":"100m Butterfly"},{"no":8,"name":"100 Butterfly Boys","trackerEvent":"100m Butterfly"},{"no":9,"name":"50 Breaststroke Girls","trackerEvent":"50m Breaststroke"},{"no":10,"name":"50 Breaststroke Boys","trackerEvent":"50m Breaststroke"},{"no":11,"name":"200 Freestyle Girls","trackerEvent":"200m Freestyle"},{"no":12,"name":"200 Freestyle Boys","trackerEvent":"200m Freestyle"},{"no":13,"name":"100 Breaststroke Girls","trackerEvent":"100m Breaststroke"},{"no":14,"name":"100 Breaststroke Boys","trackerEvent":"100m Breaststroke"},{"no":15,"name":"50 Backstroke Girls","trackerEvent":"50m Backstroke"},{"no":16,"name":"50 Backstroke Boys","trackerEvent":"50m Backstroke"},{"no":17,"name":"100 Freestyle Girls","trackerEvent":"100m Freestyle"},{"no":18,"name":"100 Freestyle Boys","trackerEvent":"100m Freestyle"},{"no":19,"name":"50 Butterfly Girls","trackerEvent":"50m Butterfly"},{"no":20,"name":"50 Butterfly Boys","trackerEvent":"50m Butterfly"},{"no":21,"name":"100 Individual Medley Girls","trackerEvent":"100m IM"},{"no":22,"name":"100 Individual Medley Boys","trackerEvent":"100m IM"}]
+  }
+];
+
+function efRenderPresetButtons(){
+  const wrap=document.getElementById('ef-preset-buttons');if(!wrap)return;
+  const dismissed=JSON.parse(localStorage.getItem('swt_dismissed_presets')||'[]');
+  wrap.innerHTML=EF_PRESETS.filter(p=>!dismissed.includes(p.id)).map(p=>{
+    const pid=p.id;
+    return'<span style="display:inline-flex;align-items:center;gap:2px;margin-left:4px">'+
+      '<button class="btn xs primary" onclick="efLoadPreset(this.dataset.id)" data-id="'+esc(pid)+'">'+esc(p.label)+'</button>'+
+      '<button class="btn xs danger" title="Remove this preset button" onclick="efDismissPreset(this.dataset.id)" data-id="'+esc(pid)+'">✕</button>'+
+    '</span>';
+  }).join('');
+}
+
+function efLoadPreset(id){
+  const p=EF_PRESETS.find(x=>x.id===id);if(!p)return;
+  if(efMeetEvents.length&&!confirm('Replace current event list with '+p.label+'?'))return;
+  const mn=document.getElementById('ef-meet-name');
+  const tn=document.getElementById('ef-team-name');
+  if(mn)mn.value=p.meetName;
+  if(tn)tn.value=p.teamName;
+  efMeetEvents=JSON.parse(JSON.stringify(p.events));
+  renderEfEventList();
+  renderEntryFormTab();
+}
+
+function efDismissPreset(id){
+  const dismissed=JSON.parse(localStorage.getItem('swt_dismissed_presets')||'[]');
+  if(!dismissed.includes(id))dismissed.push(id);
+  localStorage.setItem('swt_dismissed_presets',JSON.stringify(dismissed));
+  efRenderPresetButtons();
 }
 
 function efLoadSSHSJune2026(){
@@ -2711,22 +2754,22 @@ function renderEntryFormTab(){
     if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
     const entries=efSwimmerEntries[sid];
     const eventRows=efMeetEvents.map(ev=>{
-      const val=entries[ev.name]!==undefined?entries[ev.name]:'';
-      // Auto-fill PB if blank
+      // Only explicitly selected entries show as checked
+      const isSelected=entries.hasOwnProperty(ev.name);
+      const val=isSelected?entries[ev.name]:'';
+      // PB is shown as hint only — never auto-selected
       let pbTime='';
       const trackerEv=efResolveTrackerEvent(ev);
       const sr=races.filter(r=>r.swimmerId===sid&&r.event===trackerEv&&r.finalTime&&(!efCourse||r.course===efCourse));
       if(sr.length){const best=sr.sort((a,b)=>a.finalTime-b.finalTime)[0];pbTime=formatTime(best.finalTime);}
-      const displayVal=val!==''?val:(pbTime||'');
-      const hasVal=displayVal!=='';
       return'<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid #2d3348">'+
         '<input type="checkbox" id="efse-cb-'+sid+'-'+ev.no+'" data-sid="'+sid+'" data-evname="'+esc(ev.name)+'" data-evano="'+ev.no+'" '+
-          (hasVal?'checked':'')+
+          (isSelected?'checked':'')+
           ' onchange="efToggleSwimmerEvent(this)" style="width:auto;height:auto;flex-shrink:0">'+
         '<span style="font-size:11px;color:#8892a4;font-family:monospace;min-width:32px">'+ev.no+'</span>'+
         '<span style="font-size:11px;color:#e2e8f0;flex:1">'+esc(ev.name)+'</span>'+
-        (pbTime?'<span style="font-size:10px;color:#6b7a8d;font-family:monospace">PB:'+pbTime+'</span>':'')+
-        '<input type="text" id="efse-time-'+sid+'-'+ev.no+'" placeholder="Entry time or NT" value="'+esc(displayVal)+'" '+
+        (pbTime?'<span style="font-size:10px;color:#6b7a8d;font-family:monospace">PB:'+esc(pbTime)+'</span>':'')+
+        '<input type="text" id="efse-time-'+sid+'-'+ev.no+'" placeholder="Entry time or NT" value="'+esc(val)+'" '+
           'oninput="efUpdateTime(this,'+sid+','+JSON.stringify(ev.name)+')" '+
           'style="width:90px;height:26px;font-size:11px;font-family:monospace;text-align:center">'+
       '</div>';
@@ -2770,21 +2813,29 @@ function efToggleExpand(sid,event){
 function efToggleSwimmerEvent(cb){
   const sid=parseInt(cb.dataset.sid);
   const evName=cb.dataset.evname;
+  const evNo=parseInt(cb.dataset.evano);
   if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
-  if(!cb.checked){
+  if(cb.checked){
+    // Add to entries with current input value (or empty string)
+    const timeInput=document.getElementById('efse-time-'+sid+'-'+evNo);
+    efSwimmerEntries[sid][evName]=timeInput?timeInput.value.trim():'';
+  } else {
     delete efSwimmerEntries[sid][evName];
   }
-  // If checked but no time, leave blank (will be NT or filled later)
 }
 
 function efUpdateTime(input,sid,evName){
   if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
-  efSwimmerEntries[sid][evName]=input.value.trim();
-  // auto-check the checkbox if a time is entered
-  const evNo=efMeetEvents.find(e=>e.name===evName)?.no;
-  if(evNo){
-    const cb=document.getElementById('efse-cb-'+sid+'-'+evNo);
-    if(cb)cb.checked=input.value.trim()!=='';
+  const val=input.value.trim();
+  efSwimmerEntries[sid][evName]=val;
+  // auto-check the row checkbox when a time is typed; uncheck if cleared
+  const ev=efMeetEvents.find(e=>e.name===evName);
+  if(ev){
+    const cb=document.getElementById('efse-cb-'+sid+'-'+ev.no);
+    if(cb){
+      if(val&&!cb.checked)cb.checked=true;
+      // Don't auto-uncheck when clearing — user can uncheck manually
+    }
   }
 }
 
@@ -2800,11 +2851,29 @@ function efAutoFillSwimmerSilent(sid){
     const trackerEv=efResolveTrackerEvent(ev);
     const sr=races.filter(r=>r.swimmerId===sid&&r.event===trackerEv&&r.finalTime&&(!efCourse||r.course===efCourse));
     if(sr.length){
+      // Fill with PB and select
       const best=sr.sort((a,b)=>a.finalTime-b.finalTime)[0];
       efSwimmerEntries[sid][ev.name]=formatTime(best.finalTime);
-    } else {
-      // No PB — mark as selected with blank time so the row is checked
-      if(!efSwimmerEntries[sid][ev.name])efSwimmerEntries[sid][ev.name]='';
+    }
+    // Events with no PB: don't auto-select — leave unchecked unless already in entries
+  });
+}
+
+// Select ALL events for swimmer (blank time if no PB)
+function efSelectAllSwimmerEvents(sid){
+  const efCourse=(document.getElementById('ef-course')||{}).value||'';
+  if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
+  efMeetEvents.forEach(ev=>{
+    if(!efSwimmerEntries[sid].hasOwnProperty(ev.name)){
+      // Auto-fill PB if available, otherwise blank
+      const trackerEv=efResolveTrackerEvent(ev);
+      const sr=races.filter(r=>r.swimmerId===sid&&r.event===trackerEv&&r.finalTime&&(!efCourse||r.course===efCourse));
+      if(sr.length){
+        const best=sr.sort((a,b)=>a.finalTime-b.finalTime)[0];
+        efSwimmerEntries[sid][ev.name]=formatTime(best.finalTime);
+      } else {
+        efSwimmerEntries[sid][ev.name]='';
+      }
     }
   });
 }
@@ -2813,10 +2882,10 @@ function efToggleSwimmer(sid){
   const cb=document.getElementById('ef-sw-'+sid);
   if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
   if(cb.checked){
-    // Check all — auto-fill PBs for all events
-    efAutoFillSwimmerSilent(sid);
+    // Select all events, auto-filling PBs where available
+    efSelectAllSwimmerEvents(sid);
   } else {
-    // Uncheck all — clear all entries
+    // Deselect all events
     efSwimmerEntries[sid]={};
   }
   renderEntryFormTab();
@@ -2851,7 +2920,9 @@ function generateEntryForm(){
       const gender=swimmer.gender||'M';
       // Resolve event number — if event has boysNo/girlsNo use gender-specific, else use ev.no
       const evNo=ev.boysNo!=null?(gender==='M'?ev.boysNo:ev.girlsNo):ev.no;
-      const st=swimmerEntries[ev.name]||'';
+      // Read time from DOM input first (most current), fall back to efSwimmerEntries
+      const timeInput=document.getElementById('efse-time-'+sid+'-'+ev.no);
+      const st=(timeInput?timeInput.value.trim():'')||swimmerEntries[ev.name]||'';
 
       const ln=swimmer.lastName||'';const fn=swimmer.firstName||'';
       const dn=ln&&fn?ln+', '+fn:displayName(swimmer);
@@ -2874,7 +2945,7 @@ function generateEntryForm(){
     });
   });
 
-  if(!entries.length){alert('No events selected with entry times.');return;}
+  if(!entries.length){alert('No events selected. Check at least one event per swimmer.');return;}
   // Sort by last name then event number
   entries.sort((a,b)=>a.dn.localeCompare(b.dn)||a.evNo-b.evNo);
   efCreateMeetAndPending(entries,meetName);
