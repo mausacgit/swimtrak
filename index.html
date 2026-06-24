@@ -556,8 +556,14 @@ canvas{background:#1a1d27}
         <input type="number" id="ef-new-evno" placeholder="101" style="height:30px;font-size:12px"/>
       </div>
       <div class="field" style="margin:0;flex:1;min-width:140px">
-        <label>Event name</label>
-        <input type="text" id="ef-new-evname" placeholder="100m Freestyle" style="height:30px;font-size:12px"/>
+        <label>Display name (on form)</label>
+        <input type="text" id="ef-new-evname" placeholder="e.g. 200m IM Girls" style="height:30px;font-size:12px"/>
+      </div>
+      <div class="field" style="margin:0;min-width:150px">
+        <label>Links to tracker event</label>
+        <select id="ef-new-tracker-event" style="height:30px;font-size:11px">
+          <option value="">— none / manual only —</option>
+        </select>
       </div>
       <button class="btn xs primary" onclick="efAddMeetEvent()" style="margin-bottom:1px">+ Add event</button>
     </div>
@@ -2604,29 +2610,39 @@ let efSwimmerEntries={};
 // ── Event list management ──────────────────────────────────
 function renderEfEventList(){
   const wrap=document.getElementById('ef-event-list-wrap');if(!wrap)return;
+  // Populate the tracker event dropdown
+  const trackerSel=document.getElementById('ef-new-tracker-event');
+  if(trackerSel&&trackerSel.options.length<=1){
+    EVENTS.forEach(ev=>{const o=document.createElement('option');o.value=ev;o.textContent=ev;trackerSel.appendChild(o);});
+  }
   if(!efMeetEvents.length){wrap.innerHTML='<div class="empty" style="padding:8px 0">No events added yet.</div>';return;}
   wrap.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:5px">'+
-    efMeetEvents.map((ev,i)=>
-      '<div style="display:inline-flex;align-items:center;gap:4px;background:#252a38;border:1px solid #3d4460;border-radius:6px;padding:3px 8px;font-size:11px">'+
+    efMeetEvents.map((ev,i)=>{
+      const linkLabel=ev.trackerEvent?' <span style="font-size:9px;color:#6b7a8d">→ '+esc(ev.trackerEvent)+'</span>':'';
+      return'<div style="display:inline-flex;align-items:center;gap:4px;background:#252a38;border:1px solid #3d4460;border-radius:6px;padding:3px 8px;font-size:11px">'+
         '<span style="color:#8892a4;font-family:monospace;font-weight:600">'+ev.no+'</span>'+
         '<span style="color:#e2e8f0"> — '+esc(ev.name)+'</span>'+
+        linkLabel+
         '<span style="color:#fca5a5;cursor:pointer;font-weight:700;margin-left:4px" onclick="efRemoveMeetEvent('+i+')">✕</span>'+
-      '</div>'
-    ).join('')+
+      '</div>';
+    }).join('')+
   '</div>';
 }
 
 function efAddMeetEvent(){
   const noInput=document.getElementById('ef-new-evno');
   const nameInput=document.getElementById('ef-new-evname');
+  const trackerSel=document.getElementById('ef-new-tracker-event');
   if(!noInput||!nameInput)return;
   const no=parseInt(noInput.value);
   const name=nameInput.value.trim();
+  const trackerEvent=(trackerSel&&trackerSel.value)||'';
   if(!no||!name){alert('Enter both an event number and event name.');return;}
   if(efMeetEvents.find(e=>e.no===no)){alert('Event number '+no+' already exists in this list.');return;}
-  efMeetEvents.push({no,name});
+  efMeetEvents.push({no,name,trackerEvent});
   efMeetEvents.sort((a,b)=>a.no-b.no);
   noInput.value='';nameInput.value='';
+  if(trackerSel)trackerSel.value='';
   renderEfEventList();
   renderEntryFormTab();
 }
@@ -2642,7 +2658,8 @@ function efLoadDefaultEvents(){
   efMeetEvents=[];
   const gender='M'; // use boys numbers as reference; both genders handled per swimmer at generate time
   Object.entries(ENTRY_EVENT_MAP_DEFAULT).forEach(([name,info])=>{
-    efMeetEvents.push({no:info.boys,name,boysNo:info.boys,girlsNo:info.girls});
+    // trackerEvent = canonical tracker name (same as name for default events)
+    efMeetEvents.push({no:info.boys,name,trackerEvent:name,boysNo:info.boys,girlsNo:info.girls});
   });
   efMeetEvents.sort((a,b)=>a.no-b.no);
   renderEfEventList();
@@ -2650,6 +2667,24 @@ function efLoadDefaultEvents(){
 }
 
 // ── Swimmer list ───────────────────────────────────────────
+// Resolve which tracker event name to use for PB lookup
+// Uses trackerEvent link if set, then tries fuzzy distance+stroke match, then falls back to ev.name
+function efResolveTrackerEvent(ev){
+  if(ev.trackerEvent)return ev.trackerEvent;
+  // Fuzzy match: find a tracker EVENTS entry that contains the same distance and stroke keywords
+  const name=ev.name.toLowerCase();
+  const strokeMap={'freestyle':'Freestyle','backstroke':'Backstroke','breaststroke':'Breaststroke','butterfly':'Butterfly','individual medley':'IM','medley':'IM','im':'IM'};
+  const distMatch=name.match(/(\d+)\s*m?/);
+  const dist=distMatch?distMatch[1]:null;
+  let stroke='';
+  for(const [k,v] of Object.entries(strokeMap)){if(name.includes(k)){stroke=v;break;}}
+  if(dist&&stroke){
+    const candidate=EVENTS.find(e=>e.includes(dist+'m')&&e.includes(stroke));
+    if(candidate)return candidate;
+  }
+  return ev.name; // fallback: use as-is
+}
+
 function renderEntryFormTab(){
   renderEfEventList();
   const wrap=document.getElementById('ef-swimmer-list');if(!wrap)return;
@@ -2665,7 +2700,8 @@ function renderEntryFormTab(){
       const val=entries[ev.name]!==undefined?entries[ev.name]:'';
       // Auto-fill PB if blank
       let pbTime='';
-      const sr=races.filter(r=>r.swimmerId===sid&&r.event===ev.name&&r.finalTime&&(!efCourse||r.course===efCourse));
+      const trackerEv=efResolveTrackerEvent(ev);
+      const sr=races.filter(r=>r.swimmerId===sid&&r.event===trackerEv&&r.finalTime&&(!efCourse||r.course===efCourse));
       if(sr.length){const best=sr.sort((a,b)=>a.finalTime-b.finalTime)[0];pbTime=formatTime(best.finalTime);}
       const displayVal=val!==''?val:(pbTime||'');
       const hasVal=displayVal!=='';
@@ -2720,7 +2756,8 @@ function efAutoFillSwimmer(sid){
   const efCourse=(document.getElementById('ef-course')||{}).value||'';
   if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
   efMeetEvents.forEach(ev=>{
-    const sr=races.filter(r=>r.swimmerId===sid&&r.event===ev.name&&r.finalTime&&(!efCourse||r.course===efCourse));
+    const trackerEv=efResolveTrackerEvent(ev);
+    const sr=races.filter(r=>r.swimmerId===sid&&r.event===trackerEv&&r.finalTime&&(!efCourse||r.course===efCourse));
     if(sr.length){
       const best=sr.sort((a,b)=>a.finalTime-b.finalTime)[0];
       efSwimmerEntries[sid][ev.name]=formatTime(best.finalTime);
