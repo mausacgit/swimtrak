@@ -518,11 +518,11 @@ canvas{background:#1a1d27}
 <!-- == ENTRY FORM == -->
 <div id="section-entry-form" class="section">
   <div class="section-header"><h2>Entry Form Generator</h2></div>
-  <p style="font-size:12px;color:#8892a4;margin-bottom:12px">Select swimmers and their events, then generate a filled Philippine Aquatics entry form.</p>
+  <p style="font-size:12px;color:#8892a4;margin-bottom:12px">Step 1: set up the meet and its events. Step 2: assign swimmers. Step 3: generate.</p>
+
+  <!-- Step 1: Meet details + event list -->
   <div class="card">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <p class="card-title" style="margin:0;flex:1">Meet details</p>
-    </div>
+    <p class="card-title">Step 1 — Meet details</p>
     <div class="form-row">
       <div class="field" style="flex:2;min-width:200px">
         <label>Meet name</label>
@@ -542,14 +542,37 @@ canvas{background:#1a1d27}
       </div>
     </div>
   </div>
+
   <div class="card">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <p class="card-title" style="margin:0;flex:1">Select swimmers &amp; events</p>
+      <p class="card-title" style="margin:0;flex:1">Meet event list</p>
+      <button class="btn xs" onclick="efLoadDefaultEvents()">Load default events</button>
+    </div>
+    <p style="font-size:11px;color:#8892a4;margin-bottom:8px">Add each event for this meet. Swimmers will pick from this list.</p>
+    <div id="ef-event-list-wrap"></div>
+    <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:flex-end">
+      <div class="field" style="margin:0;min-width:60px;max-width:80px">
+        <label>Event No.</label>
+        <input type="number" id="ef-new-evno" placeholder="101" style="height:30px;font-size:12px"/>
+      </div>
+      <div class="field" style="margin:0;flex:1;min-width:140px">
+        <label>Event name</label>
+        <input type="text" id="ef-new-evname" placeholder="100m Freestyle" style="height:30px;font-size:12px"/>
+      </div>
+      <button class="btn xs primary" onclick="efAddMeetEvent()" style="margin-bottom:1px">+ Add event</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Swimmers -->
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <p class="card-title" style="margin:0;flex:1">Step 2 — Swimmers &amp; entry times</p>
       <button class="btn xs" onclick="efSelectAll()">Select all</button>
       <button class="btn xs" onclick="efClearAll()">Clear all</button>
     </div>
     <div id="ef-swimmer-list"></div>
   </div>
+
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
     <button class="btn primary sm" onclick="generateEntryForm()">
       <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:#fff;stroke-width:2;fill:none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -2569,327 +2592,224 @@ renderPeriodsUI();
 // ===========================================================
 // ENTRY FORM
 // ===========================================================
-const ENTRY_EVENT_MAP={'100m Freestyle':{boys:101,girls:102,day:1},'200m Breaststroke':{boys:103,girls:104,day:1},'50m Backstroke':{boys:105,girls:106,day:1},'200m Butterfly':{boys:107,girls:108,day:1},'1500m Freestyle':{boys:109,girls:110,day:1},'200m Freestyle':{boys:201,girls:202,day:2},'50m Butterfly':{boys:203,girls:204,day:2},'100m Backstroke':{boys:205,girls:206,day:2},'200m IM':{boys:207,girls:208,day:2},'50m Breaststroke':{boys:209,girls:210,day:2},'800m Freestyle':{boys:211,girls:212,day:2},'100m Breaststroke':{boys:301,girls:302,day:3},'50m Freestyle':{boys:303,girls:304,day:3},'400m IM':{boys:305,girls:306,day:3},'200m Backstroke':{boys:307,girls:308,day:3},'100m Butterfly':{boys:309,girls:310,day:3},'400m Freestyle':{boys:311,girls:312,day:3}};
 
-// Manual entries added per swimmer: {swimmerId: [{event, seedTime}]}
-let efManualEntries={};
-// Overrides per entry: {swimmerId: {eventName: {time, evNo, evName}}}
-// Covers: custom seed time, custom event number, custom event name
-let efOverrides={};
-// Track which chip is currently being edited (to show inline editor)
-let efEditingChip=null; // 'sid:ev' string
+// Default event map (Palarong/PAI format) — used by "Load default events"
+const ENTRY_EVENT_MAP_DEFAULT={'100m Freestyle':{boys:101,girls:102,day:1},'200m Breaststroke':{boys:103,girls:104,day:1},'50m Backstroke':{boys:105,girls:106,day:1},'200m Butterfly':{boys:107,girls:108,day:1},'1500m Freestyle':{boys:109,girls:110,day:1},'200m Freestyle':{boys:201,girls:202,day:2},'50m Butterfly':{boys:203,girls:204,day:2},'100m Backstroke':{boys:205,girls:206,day:2},'200m IM':{boys:207,girls:208,day:2},'50m Breaststroke':{boys:209,girls:210,day:2},'800m Freestyle':{boys:211,girls:212,day:2},'100m Breaststroke':{boys:301,girls:302,day:3},'50m Freestyle':{boys:303,girls:304,day:3},'400m IM':{boys:305,girls:306,day:3},'200m Backstroke':{boys:307,girls:308,day:3},'100m Butterfly':{boys:309,girls:310,day:3},'400m Freestyle':{boys:311,girls:312,day:3}};
 
-function renderEntryFormTab(){
-  const wrap=document.getElementById('ef-swimmer-list');if(!wrap)return;
-  if(!swimmers.length){wrap.innerHTML='<div class="empty">No swimmers in roster.</div>';return;}
-  const sorted=[...swimmers].sort((a,b)=>(a.lastName||'').localeCompare(b.lastName||''));
-  // All entry-eligible events, sorted by event number for the add-dropdown
-  const ALL_EVENTS=Object.keys(ENTRY_EVENT_MAP).sort((a,b)=>ENTRY_EVENT_MAP[a].day-ENTRY_EVENT_MAP[b].day||ENTRY_EVENT_MAP[a].boys-ENTRY_EVENT_MAP[b].boys);
+// Per-meet event list: [{no, name}] — defined by coach for this specific meet
+let efMeetEvents=[];
+// Per-swimmer entry times: {swimmerId: {eventName: 'mm:ss.xx'|''}}
+let efSwimmerEntries={};
 
-  wrap.innerHTML=sorted.map(s=>{
-    const sid=s.id;
-    const efCourse=(document.getElementById('ef-course')||{}).value||'';
-    const sr=races.filter(r=>r.swimmerId===sid&&r.finalTime&&(!efCourse||r.course===efCourse));
-    const evsWithPB=[...new Set(sr.map(r=>r.event))].filter(e=>ENTRY_EVENT_MAP[e]);
-    const manual=efManualEntries[sid]||[];
-    const manualEvNames=manual.map(m=>m.event);
-    // Events available to add manually = all entry events minus ones already shown (PB or manual)
-    const availableToAdd=ALL_EVENTS.filter(e=>!evsWithPB.includes(e)&&!manualEvNames.includes(e));
-
-    // Build a combined, event-number-ordered list of chips (PB-based + manual)
-    const chipItems=[];
-    evsWithPB.forEach(ev=>{
-      const ei=ENTRY_EVENT_MAP[ev];
-      const evNo=s.gender==='M'?ei.boys:ei.girls;
-      chipItems.push({ev,evNo,kind:'pb'});
-    });
-    manual.forEach((m,mi)=>{
-      const ei=ENTRY_EVENT_MAP[m.event];
-      const evNo=s.gender==='M'?ei.boys:ei.girls;
-      chipItems.push({ev:m.event,evNo,kind:'manual',mi,seedTime:m.seedTime});
-    });
-    chipItems.sort((a,b)=>a.evNo-b.evNo);
-
-    const allChips=chipItems.map(item=>{
-      const chipKey=sid+':'+item.ev;
-      const isEditing=(efEditingChip===chipKey);
-      const ov=(efOverrides[sid]||{})[item.ev]||{};
-      const dispEvNo=ov.evNo!=null?ov.evNo:item.evNo;
-      const dispEvName=ov.evName||item.ev;
-      const isModified=ov.evNo!=null||ov.evName||ov.time;
-
-      if(item.kind==='pb'){
-        const ev=item.ev;
-        const best=[...sr.filter(r=>r.event===ev)].sort((a,b)=>a.finalTime-b.finalTime)[0];
-        const pbTime=best?formatTime(best.finalTime):'—';
-        const dispTime=ov.time||pbTime;
-        const seedAttr=ov.time?' data-seed="'+esc(ov.time)+'"':'';
-        const timeColor=ov.time?'#fbbf24':'#8892a4';
-        const borderCol=isModified?'#f59e0b':'#3d4460';
-        return'<div style="display:inline-flex;flex-direction:column;gap:2px">'+
-          '<label style="display:inline-flex;align-items:center;gap:4px;background:#252a38;border:1px solid '+borderCol+';border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">'+
-            '<input type="checkbox" id="ef-ev-'+sid+'-'+dispEvNo+'" data-swimmer="'+sid+'" data-event="'+esc(ev)+'"'+seedAttr+' checked style="width:auto;height:auto">'+
-            '<span style="color:#e2e8f0;font-family:monospace;font-weight:600">'+dispEvNo+'</span>'+
-            '<span style="color:#e2e8f0"> — '+esc(dispEvName)+'</span>'+
-            '<span style="color:'+timeColor+';font-family:monospace">'+esc(dispTime)+'</span>'+
-            '<span style="color:#60a5fa;cursor:pointer;font-size:10px;padding:0 2px" onclick="efToggleChipEdit('+sid+',"'+esc(ev)+'");event.preventDefault()">'+(isEditing?'▲':'✎')+'</span>'+
-            (isModified?'<span style="color:#8892a4;cursor:pointer;font-weight:700;font-size:10px" onclick="efResetChipOverride('+sid+',"'+esc(ev)+'");event.preventDefault()">↺</span>':'')+
-          '</label>'+
-          (isEditing?efChipEditRow(sid,ev,dispEvNo,dispEvName,dispTime,pbTime):'')+
-        '</div>';
-      } else {
-        const ev=item.ev,evNo=item.evNo,mi=item.mi;
-        const dispTime=ov.time||item.seedTime||'NT';
-        const seedAttr='data-seed="'+esc(ov.time||item.seedTime||'')+'"';
-        const borderCol=isModified?'#f59e0b':'#3b82f6';
-        return'<div style="display:inline-flex;flex-direction:column;gap:2px">'+
-          '<label style="display:inline-flex;align-items:center;gap:4px;background:#1e2a3a;border:1px solid '+borderCol+';border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">'+
-            '<input type="checkbox" id="ef-man-'+sid+'-'+mi+'" data-swimmer="'+sid+'" data-event="'+esc(ev)+'" '+seedAttr+' checked style="width:auto;height:auto">'+
-            '<span style="color:#93c5fd;font-family:monospace;font-weight:600">'+dispEvNo+'</span>'+
-            '<span style="color:#93c5fd"> — '+esc(dispEvName)+'</span>'+
-            '<span style="color:#8892a4;font-family:monospace">'+esc(dispTime)+'</span>'+
-            '<span style="color:#60a5fa;cursor:pointer;font-size:10px;padding:0 2px" onclick="efToggleChipEdit('+sid+',"'+esc(ev)+'");event.preventDefault()">'+(isEditing?'▲':'✎')+'</span>'+
-            (isModified?'<span style="color:#8892a4;cursor:pointer;font-weight:700;font-size:10px" onclick="efResetChipOverride('+sid+',"'+esc(ev)+'");event.preventDefault()">↺</span>':'')+
-            '<span style="color:#fca5a5;cursor:pointer;font-weight:700" onclick="efRemoveManual('+sid+','+mi+');event.preventDefault()">✕</span>'+
-          '</label>'+
-          (isEditing?efChipEditRow(sid,ev,dispEvNo,dispEvName,dispTime,''):'')+
-        '</div>';
-      }
-    }).join('');
-
-    const addRow=availableToAdd.length?(
-      '<div style="display:flex;align-items:center;gap:5px;margin-top:6px;padding-left:20px;flex-wrap:wrap">'+
-        '<select id="ef-add-event-'+sid+'" style="width:auto;height:26px;font-size:11px;min-width:160px">'+
-          availableToAdd.map(ev=>{
-            const ei=ENTRY_EVENT_MAP[ev];const evNo=s.gender==='M'?ei.boys:ei.girls;
-            return'<option value="'+esc(ev)+'">'+evNo+' — '+ev+'</option>';
-          }).join('')+
-        '</select>'+
-        '<input type="text" id="ef-add-time-'+sid+'" placeholder="Entry time (optional)" style="width:auto;height:26px;font-size:11px;width:130px">'+
-        '<button class="btn xs" onclick="efAddManual('+sid+')">+ Add event</button>'+
+// ── Event list management ──────────────────────────────────
+function renderEfEventList(){
+  const wrap=document.getElementById('ef-event-list-wrap');if(!wrap)return;
+  if(!efMeetEvents.length){wrap.innerHTML='<div class="empty" style="padding:8px 0">No events added yet.</div>';return;}
+  wrap.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:5px">'+
+    efMeetEvents.map((ev,i)=>
+      '<div style="display:inline-flex;align-items:center;gap:4px;background:#252a38;border:1px solid #3d4460;border-radius:6px;padding:3px 8px;font-size:11px">'+
+        '<span style="color:#8892a4;font-family:monospace;font-weight:600">'+ev.no+'</span>'+
+        '<span style="color:#e2e8f0"> — '+esc(ev.name)+'</span>'+
+        '<span style="color:#fca5a5;cursor:pointer;font-weight:700;margin-left:4px" onclick="efRemoveMeetEvent('+i+')">✕</span>'+
       '</div>'
-    ):'';
-
-    if(!evsWithPB.length&&!manual.length&&!availableToAdd.length)return'';
-
-    return'<div class="card" style="margin-bottom:8px;padding:10px 14px">'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap">'+
-        '<input type="checkbox" id="ef-sw-'+sid+'" checked onchange="efToggleSwimmer('+sid+')" style="width:auto;height:auto">'+
-        '<label for="ef-sw-'+sid+'" style="font-size:13px;font-weight:700;color:#e2e8f0;cursor:pointer;margin:0">'+esc(lastFirstName(s))+'</label>'+
-        '<span class="badge '+(s.gender==='M'?'bb':'br')+'" style="font-size:10px">'+(s.gender==='M'?'M':'F')+'</span>'+
-        '<span class="badge ba" style="font-size:10px">'+(s.group||'')+'</span>'+
-      '</div>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:5px;padding-left:20px">'+allChips+'</div>'+
-      addRow+
-      '</div>';
-  }).join('');
-}
-
-// Capture/restore checkbox states across re-renders, keyed by swimmer+event
-// (stable regardless of chip ordering or manual-entry index shifts)
-function efCaptureState(){
-  const state={};
-  document.querySelectorAll('#ef-swimmer-list input[type=checkbox]').forEach(cb=>{
-    let key;
-    if(cb.dataset.event!==undefined){
-      key='ev:'+cb.dataset.swimmer+'::'+cb.dataset.event;
-    } else if(cb.id&&cb.id.startsWith('ef-sw-')){
-      key='sw:'+cb.id.slice('ef-sw-'.length);
-    } else return;
-    state[key]=cb.checked;
-  });
-  return state;
-}
-function efRestoreState(state){
-  document.querySelectorAll('#ef-swimmer-list input[type=checkbox]').forEach(cb=>{
-    let key;
-    if(cb.dataset.event!==undefined){
-      key='ev:'+cb.dataset.swimmer+'::'+cb.dataset.event;
-    } else if(cb.id&&cb.id.startsWith('ef-sw-')){
-      key='sw:'+cb.id.slice('ef-sw-'.length);
-    } else return;
-    if(Object.prototype.hasOwnProperty.call(state,key)){
-      cb.checked=state[key];
-    }
-    // else: newly added item, keep its default (checked)
-  });
-}
-
-function efAddManual(sid){
-  const evSel=document.getElementById('ef-add-event-'+sid);
-  const timeInput=document.getElementById('ef-add-time-'+sid);
-  if(!evSel)return;
-  const ev=evSel.value;
-  let seedTime=timeInput?timeInput.value.trim():'';
-  // Validate/normalize the time if provided
-  if(seedTime){
-    const t=parseTime(seedTime);
-    if(!t||isNaN(t)){alert('Invalid time format. Use mm:ss.xx or ss.xx, or leave blank for NT.');return;}
-    seedTime=formatTime(t);
-  }
-  if(!efManualEntries[sid])efManualEntries[sid]=[];
-  efManualEntries[sid].push({event:ev,seedTime});
-  const state=efCaptureState();
-  renderEntryFormTab();
-  efRestoreState(state);
-}
-function efRemoveManual(sid,idx){
-  if(!efManualEntries[sid])return;
-  efManualEntries[sid].splice(idx,1);
-  const state=efCaptureState();
-  renderEntryFormTab();
-  efRestoreState(state);
-}
-
-// Override a PB-based seed time — used when a swimmer has a faster
-// unrecorded time from a meet not logged in the tracker
-// Build inline edit row HTML for a chip
-function efChipEditRow(sid,ev,currentEvNo,currentEvName,currentTime,pbTime){
-  const pbHint=pbTime&&pbTime!=='—'?' (PB: '+pbTime+')':'';
-  return'<div id="ef-edit-'+sid+'-'+btoa(ev).replace(/=/g,'')+'" style="background:#161a27;border:1px solid #3d4460;border-radius:0 0 6px 6px;padding:7px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin-top:-2px">'+
-    '<div class="field" style="margin:0;min-width:60px;max-width:70px"><label style="font-size:10px">Ev. No.</label>'+
-    '<input type="number" id="efce-no-'+sid+'" value="'+currentEvNo+'" style="height:26px;font-size:12px;padding:0 5px;width:100%"></div>'+
-    '<div class="field" style="margin:0;flex:1;min-width:120px"><label style="font-size:10px">Event name</label>'+
-    '<input type="text" id="efce-name-'+sid+'" value="'+esc(currentEvName)+'" style="height:26px;font-size:12px;padding:0 6px;width:100%"></div>'+
-    '<div class="field" style="margin:0;min-width:90px;max-width:110px"><label style="font-size:10px">Entry time'+pbHint+'</label>'+
-    '<input type="text" id="efce-time-'+sid+'" value="'+esc(currentTime)+'" placeholder="mm:ss.xx" style="height:26px;font-size:12px;padding:0 6px;width:100%"></div>'+
-    '<button class="btn xs primary" onclick="efSaveChipEdit('+sid+',' +JSON.stringify(ev)+')">Save</button>'+
-    '<button class="btn xs" onclick="efToggleChipEdit('+sid+','+JSON.stringify(ev)+')">Cancel</button>'+
+    ).join('')+
   '</div>';
 }
 
-function efToggleChipEdit(sid,ev){
-  const key=sid+':'+ev;
-  efEditingChip=(efEditingChip===key)?null:key;
-  const state=efCaptureState();
+function efAddMeetEvent(){
+  const noInput=document.getElementById('ef-new-evno');
+  const nameInput=document.getElementById('ef-new-evname');
+  if(!noInput||!nameInput)return;
+  const no=parseInt(noInput.value);
+  const name=nameInput.value.trim();
+  if(!no||!name){alert('Enter both an event number and event name.');return;}
+  if(efMeetEvents.find(e=>e.no===no)){alert('Event number '+no+' already exists in this list.');return;}
+  efMeetEvents.push({no,name});
+  efMeetEvents.sort((a,b)=>a.no-b.no);
+  noInput.value='';nameInput.value='';
+  renderEfEventList();
   renderEntryFormTab();
-  efRestoreState(state);
 }
 
-function efSaveChipEdit(sid,ev){
-  const newNo=parseInt((document.getElementById('efce-no-'+sid)||{}).value);
-  const newName=((document.getElementById('efce-name-'+sid)||{}).value||'').trim();
-  const newTimeStr=((document.getElementById('efce-time-'+sid)||{}).value||'').trim();
-  if(!efOverrides[sid])efOverrides[sid]={};
-  const entry=efOverrides[sid][ev]||{};
-  // event number
-  if(!isNaN(newNo)&&newNo>0)entry.evNo=newNo; else delete entry.evNo;
-  // event name
-  if(newName&&newName!==ev)entry.evName=newName; else delete entry.evName;
-  // time
-  if(newTimeStr){
-    const t=parseTime(newTimeStr);
-    if(!t||isNaN(t)){alert('Invalid time format. Use mm:ss.xx or ss.xx.');return;}
-    entry.time=formatTime(t);
-  } else {
-    delete entry.time;
-  }
-  if(Object.keys(entry).length)efOverrides[sid][ev]=entry;
-  else{delete efOverrides[sid][ev];if(!Object.keys(efOverrides[sid]).length)delete efOverrides[sid];}
-  efEditingChip=null;
-  const state=efCaptureState();
+function efRemoveMeetEvent(idx){
+  efMeetEvents.splice(idx,1);
+  renderEfEventList();
   renderEntryFormTab();
-  efRestoreState(state);
 }
 
-function efResetChipOverride(sid,ev){
-  if(efOverrides[sid]){
-    delete efOverrides[sid][ev];
-    if(!Object.keys(efOverrides[sid]).length)delete efOverrides[sid];
-  }
-  efEditingChip=null;
-  const state=efCaptureState();
+function efLoadDefaultEvents(){
+  if(efMeetEvents.length&&!confirm('Replace current event list with default Palarong/PAI events?'))return;
+  efMeetEvents=[];
+  const gender='M'; // use boys numbers as reference; both genders handled per swimmer at generate time
+  Object.entries(ENTRY_EVENT_MAP_DEFAULT).forEach(([name,info])=>{
+    efMeetEvents.push({no:info.boys,name,boysNo:info.boys,girlsNo:info.girls});
+  });
+  efMeetEvents.sort((a,b)=>a.no-b.no);
+  renderEfEventList();
   renderEntryFormTab();
-  efRestoreState(state);
+}
+
+// ── Swimmer list ───────────────────────────────────────────
+function renderEntryFormTab(){
+  renderEfEventList();
+  const wrap=document.getElementById('ef-swimmer-list');if(!wrap)return;
+  if(!swimmers.length){wrap.innerHTML='<div class="empty">No swimmers in roster.</div>';return;}
+  if(!efMeetEvents.length){wrap.innerHTML='<div class="empty">Add events in Step 1 first.</div>';return;}
+  const efCourse=(document.getElementById('ef-course')||{}).value||'';
+  const sorted=[...swimmers].sort((a,b)=>(a.lastName||'').localeCompare(b.lastName||''));
+  wrap.innerHTML=sorted.map(s=>{
+    const sid=s.id;
+    if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
+    const entries=efSwimmerEntries[sid];
+    const eventRows=efMeetEvents.map(ev=>{
+      const val=entries[ev.name]!==undefined?entries[ev.name]:'';
+      // Auto-fill PB if blank
+      let pbTime='';
+      const sr=races.filter(r=>r.swimmerId===sid&&r.event===ev.name&&r.finalTime&&(!efCourse||r.course===efCourse));
+      if(sr.length){const best=sr.sort((a,b)=>a.finalTime-b.finalTime)[0];pbTime=formatTime(best.finalTime);}
+      const displayVal=val!==''?val:(pbTime||'');
+      const hasVal=displayVal!=='';
+      return'<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid #2d3348">'+
+        '<input type="checkbox" id="efse-cb-'+sid+'-'+ev.no+'" data-sid="'+sid+'" data-evname="'+esc(ev.name)+'" data-evano="'+ev.no+'" '+
+          (hasVal?'checked':'')+
+          ' onchange="efToggleSwimmerEvent(this)" style="width:auto;height:auto;flex-shrink:0">'+
+        '<span style="font-size:11px;color:#8892a4;font-family:monospace;min-width:32px">'+ev.no+'</span>'+
+        '<span style="font-size:11px;color:#e2e8f0;flex:1">'+esc(ev.name)+'</span>'+
+        (pbTime?'<span style="font-size:10px;color:#6b7a8d;font-family:monospace">PB:'+pbTime+'</span>':'')+
+        '<input type="text" id="efse-time-'+sid+'-'+ev.no+'" placeholder="Entry time or NT" value="'+esc(displayVal)+'" '+
+          'oninput="efUpdateTime(this,'+sid+','+JSON.stringify(ev.name)+')" '+
+          'style="width:90px;height:26px;font-size:11px;font-family:monospace;text-align:center">'+
+      '</div>';
+    }).join('');
+    return'<div class="card" style="margin-bottom:8px;padding:10px 14px">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">'+
+        '<input type="checkbox" id="ef-sw-'+sid+'" onchange="efToggleSwimmer('+sid+')" style="width:auto;height:auto" '+
+          (Object.values(entries).some(v=>v!==null&&v!=='')&&Object.keys(entries).length?'checked':'')+'>'+
+        '<label for="ef-sw-'+sid+'" style="font-size:13px;font-weight:700;color:#e2e8f0;cursor:pointer;margin:0">'+esc(lastFirstName(s))+'</label>'+
+        '<span class="badge '+(s.gender==='M'?'bb':'br')+'" style="font-size:10px">'+(s.gender==='M'?'M':'F')+'</span>'+
+        '<span class="badge ba" style="font-size:10px">'+(s.group||'')+'</span>'+
+        '<button class="btn xs" onclick="efAutoFillSwimmer('+sid+')" style="margin-left:auto">Auto-fill PBs</button>'+
+      '</div>'+
+      '<div>'+eventRows+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function efToggleSwimmerEvent(cb){
+  const sid=parseInt(cb.dataset.sid);
+  const evName=cb.dataset.evname;
+  if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
+  if(!cb.checked){
+    delete efSwimmerEntries[sid][evName];
+  }
+  // If checked but no time, leave blank (will be NT or filled later)
+}
+
+function efUpdateTime(input,sid,evName){
+  if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
+  efSwimmerEntries[sid][evName]=input.value.trim();
+  // auto-check the checkbox if a time is entered
+  const evNo=efMeetEvents.find(e=>e.name===evName)?.no;
+  if(evNo){
+    const cb=document.getElementById('efse-cb-'+sid+'-'+evNo);
+    if(cb)cb.checked=input.value.trim()!=='';
+  }
+}
+
+function efAutoFillSwimmer(sid){
+  const efCourse=(document.getElementById('ef-course')||{}).value||'';
+  if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
+  efMeetEvents.forEach(ev=>{
+    const sr=races.filter(r=>r.swimmerId===sid&&r.event===ev.name&&r.finalTime&&(!efCourse||r.course===efCourse));
+    if(sr.length){
+      const best=sr.sort((a,b)=>a.finalTime-b.finalTime)[0];
+      efSwimmerEntries[sid][ev.name]=formatTime(best.finalTime);
+    }
+  });
+  renderEntryFormTab();
 }
 
 function efToggleSwimmer(sid){
+  // Toggle all events for this swimmer
   const cb=document.getElementById('ef-sw-'+sid);
-  const chk=cb?cb.checked:false;
-  document.querySelectorAll('[data-swimmer="'+sid+'"]').forEach(c=>c.checked=chk);
+  if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
+  if(!cb.checked){
+    // Uncheck all — clear all entries
+    efSwimmerEntries[sid]={};
+  }
+  renderEntryFormTab();
 }
-function efSelectAll(){document.querySelectorAll('#ef-swimmer-list input[type=checkbox]').forEach(c=>c.checked=true);}
-function efClearAll(){document.querySelectorAll('#ef-swimmer-list input[type=checkbox]').forEach(c=>c.checked=false);}
+function efSelectAll(){
+  swimmers.forEach(s=>efAutoFillSwimmer(s.id));
+  renderEntryFormTab();
+}
+function efClearAll(){
+  efSwimmerEntries={};
+  renderEntryFormTab();
+}
 
+// ── Generate ───────────────────────────────────────────────
 function generateEntryForm(){
   const meetName=document.getElementById('ef-meet-name').value.trim()||'SMART - PHILIPPINE AQUATICS NATIONAL TRYOUT 2026';
   const teamName=document.getElementById('ef-team-name').value.trim()||"St. Stephen's Manila Aquaknights";
   const entries=[];
-  document.querySelectorAll('#ef-swimmer-list input[data-event]').forEach(cb=>{
-    if(!cb.checked)return;
-    const sid=parseInt(cb.dataset.swimmer);
-    const evName=cb.dataset.event;
-    const swCb=document.getElementById('ef-sw-'+sid);
-    if(swCb&&!swCb.checked)return;
-    const swimmer=swimmers.find(s=>s.id===sid);if(!swimmer)return;
-    const ei=ENTRY_EVENT_MAP[evName];if(!ei)return;
-    const gender=swimmer.gender||'M';
-    // Use overridden evNo/evName if set
-    const chipOv=(efOverrides[sid]||{})[evName]||{};
-    const evNo=chipOv.evNo!=null?chipOv.evNo:(gender==='M'?ei.boys:ei.girls);
-    const evDisplayName=chipOv.evName||evName;
-    // Seed time: override > data-seed > best PB
-    let st='';
-    if(chipOv.time){
-      st=chipOv.time;
-    } else if(cb.hasAttribute('data-seed')){
-      st=cb.dataset.seed||'';
-    } else {
-      const sr=races.filter(r=>r.swimmerId===sid&&r.event===evName&&r.finalTime);
-      const best=[...sr].sort((a,b)=>a.finalTime-b.finalTime)[0];
-      st=best?formatTime(best.finalTime):'';
-    }
-    const ln=swimmer.lastName||'';const fn=swimmer.firstName||'';
-    const dn=ln&&fn?ln+', '+fn:displayName(swimmer);
-    // Age of reckoning: Dec 31, 2026
-    // Birthday stored as MMDDYYYY (e.g. "01152008") or YYYY-MM-DD
-    let age=swimmer.age||'';
-    let bday=swimmer.birthday||'';
-    let bdayFormatted='';
-    if(bday){
-      let mm='',dd='',yyyy='';
-      if(bday.includes('-')){
-        // YYYY-MM-DD format
-        const p=bday.split('-');yyyy=p[0];mm=p[1];dd=p[2];
-      } else if(bday.length===8){
-        // MMDDYYYY format
-        mm=bday.slice(0,2);dd=bday.slice(2,4);yyyy=bday.slice(4,8);
+
+  swimmers.forEach(s=>{
+    const sid=s.id;
+    const swimmerEntries=efSwimmerEntries[sid]||{};
+    efMeetEvents.forEach(ev=>{
+      // Check if the checkbox for this swimmer+event is checked
+      const cb=document.getElementById('efse-cb-'+sid+'-'+ev.no);
+      if(!cb||!cb.checked)return;
+      // Check if swimmer-level checkbox is checked
+      const swCb=document.getElementById('ef-sw-'+sid);
+      if(swCb&&!swCb.checked)return;
+
+      const swimmer=swimmers.find(x=>x.id===sid);if(!swimmer)return;
+      const gender=swimmer.gender||'M';
+      // Resolve event number — if event has boysNo/girlsNo use gender-specific, else use ev.no
+      const evNo=ev.boysNo!=null?(gender==='M'?ev.boysNo:ev.girlsNo):ev.no;
+      const st=swimmerEntries[ev.name]||'';
+
+      const ln=swimmer.lastName||'';const fn=swimmer.firstName||'';
+      const dn=ln&&fn?ln+', '+fn:displayName(swimmer);
+      let age=swimmer.age||'';
+      let bday=swimmer.birthday||'';
+      let bdayFormatted='';
+      if(bday){
+        let mm='',dd='',yyyy='';
+        if(bday.includes('-')){const p=bday.split('-');yyyy=p[0];mm=p[1];dd=p[2];}
+        else if(bday.length===8){mm=bday.slice(0,2);dd=bday.slice(2,4);yyyy=bday.slice(4,8);}
+        if(mm&&dd&&yyyy){
+          bdayFormatted=mm+'/'+dd+'/'+yyyy;
+          const reckoning=new Date(2026,11,31);
+          let a=2026-parseInt(yyyy,10);
+          if(reckoning.getMonth()<parseInt(mm,10)-1||(reckoning.getMonth()===parseInt(mm,10)-1&&reckoning.getDate()<parseInt(dd,10)))a--;
+          age=a;
+        }
       }
-      if(mm&&dd&&yyyy){
-        bdayFormatted=mm+'/'+dd+'/'+yyyy;
-        // Calculate age as of Dec 31, 2026
-        const reckoning=new Date(2026,11,31);
-        const birthMonth=parseInt(mm,10)-1; // 0-indexed
-        const birthDay=parseInt(dd,10);
-        const birthYear=parseInt(yyyy,10);
-        let a=2026-birthYear;
-        if(reckoning.getMonth()<birthMonth||(reckoning.getMonth()===birthMonth&&reckoning.getDate()<birthDay))a--;
-        age=a;
-      }
-    }
-    bday=bdayFormatted;
-    entries.push({dn,bday,age,gender:gender==='M'?'M':'F',evNo,evName:evDisplayName,st,day:ei.day,swimmerId:sid});
+      entries.push({dn,bday:bdayFormatted,age,gender:gender==='M'?'M':'F',evNo,evName:ev.name,st,swimmerId:sid});
+    });
   });
-  if(!entries.length){alert('No events selected.');return;}
-  // Sort: alphabetically by last name, then within each swimmer by event number
+
+  if(!entries.length){alert('No events selected with entry times.');return;}
+  // Sort by last name then event number
   entries.sort((a,b)=>a.dn.localeCompare(b.dn)||a.evNo-b.evNo);
   efCreateMeetAndPending(entries,meetName);
   generateEntryFormDOCX(entries,meetName,teamName);
 }
 
-// Auto-create the meet (if it doesn't exist) and register pending result entries
+// Auto-create the meet and pending entries
 function efCreateMeetAndPending(entries,meetName){
   let meet=meets.find(m=>m.name.trim().toLowerCase()===meetName.trim().toLowerCase());
   if(!meet){
     meet={id:Date.now(),name:meetName,date:'',course:'S',location:''};
     meets.push(meet);
   }
-  let added=0;
   entries.forEach(e=>{
     const exists=pendingEntries.find(p=>p.meetName.trim().toLowerCase()===meetName.trim().toLowerCase()&&p.swimmerId===e.swimmerId&&p.event===e.evName);
     if(!exists){
       pendingEntries.push({id:Date.now()+Math.random(),meetName,swimmerId:e.swimmerId,event:e.evName,seedTime:e.st,done:false,eventNo:e.evNo});
-      added++;
     }
   });
   save();
@@ -2898,6 +2818,8 @@ function efCreateMeetAndPending(entries,meetName){
   populateDeleteMeetSelect();
   renderPendingEntries();
 }
+
+
 
 function generateEntryFormDOCX(entries,meetName,teamName){
   // Uses embedded JSZip — no internet needed
@@ -3039,6 +2961,7 @@ function generateEntryFormDOCX(entries,meetName,teamName){
     flash('ef-msg','Downloaded as .docx. Open in Word or Google Docs, fill in coach details, then print.');
   });
 }
+
 
 
 // === JSZIP EMBEDDED ===
