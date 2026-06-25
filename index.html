@@ -548,6 +548,11 @@ canvas{background:#1a1d27}
       <p class="card-title" style="margin:0;flex:1">Meet event list</p>
       <button class="btn xs" onclick="efLoadDefaultEvents()">Load default events</button>
       <span id="ef-preset-buttons"></span>
+      <label class="btn xs" style="cursor:pointer" title="Import event list from .json file">
+        ↑ Import list
+        <input type="file" accept=".json" onchange="efImportEventList(this)" style="display:none">
+      </label>
+      <button class="btn xs" onclick="efExportEventList()" title="Export current event list as .json">↓ Export list</button>
     </div>
     <p style="font-size:11px;color:#8892a4;margin-bottom:8px">Add each event for this meet. Swimmers will pick from this list.</p>
     <div id="ef-event-list-wrap"></div>
@@ -2667,6 +2672,51 @@ const EF_PRESETS=[
     events:[{"no":1,"name":"200 Individual Medley Girls","trackerEvent":"200m IM"},{"no":2,"name":"200 Individual Medley Boys","trackerEvent":"200m IM"},{"no":3,"name":"100 Backstroke Girls","trackerEvent":"100m Backstroke"},{"no":4,"name":"100 Backstroke Boys","trackerEvent":"100m Backstroke"},{"no":5,"name":"50 Freestyle Girls","trackerEvent":"50m Freestyle"},{"no":6,"name":"50 Freestyle Boys","trackerEvent":"50m Freestyle"},{"no":7,"name":"100 Butterfly Girls","trackerEvent":"100m Butterfly"},{"no":8,"name":"100 Butterfly Boys","trackerEvent":"100m Butterfly"},{"no":9,"name":"50 Breaststroke Girls","trackerEvent":"50m Breaststroke"},{"no":10,"name":"50 Breaststroke Boys","trackerEvent":"50m Breaststroke"},{"no":11,"name":"200 Freestyle Girls","trackerEvent":"200m Freestyle"},{"no":12,"name":"200 Freestyle Boys","trackerEvent":"200m Freestyle"},{"no":13,"name":"100 Breaststroke Girls","trackerEvent":"100m Breaststroke"},{"no":14,"name":"100 Breaststroke Boys","trackerEvent":"100m Breaststroke"},{"no":15,"name":"50 Backstroke Girls","trackerEvent":"50m Backstroke"},{"no":16,"name":"50 Backstroke Boys","trackerEvent":"50m Backstroke"},{"no":17,"name":"100 Freestyle Girls","trackerEvent":"100m Freestyle"},{"no":18,"name":"100 Freestyle Boys","trackerEvent":"100m Freestyle"},{"no":19,"name":"50 Butterfly Girls","trackerEvent":"50m Butterfly"},{"no":20,"name":"50 Butterfly Boys","trackerEvent":"50m Butterfly"},{"no":21,"name":"100 Individual Medley Girls","trackerEvent":"100m IM"},{"no":22,"name":"100 Individual Medley Boys","trackerEvent":"100m IM"}]
   }
 ];
+
+function efExportEventList(){
+  if(!efMeetEvents.length){alert('No events to export. Add events first.');return;}
+  const meetName=(document.getElementById('ef-meet-name')||{}).value||'Meet';
+  const payload={
+    _type:'swimtrak_event_list',
+    _version:1,
+    meetName:meetName.trim(),
+    events:efMeetEvents
+  };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=meetName.trim().replace(/[^a-zA-Z0-9]/g,'_').slice(0,40)+'_events.json';
+  a.click();
+}
+
+function efImportEventList(input){
+  if(!input.files.length)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      if(data._type!=='swimtrak_event_list'||!Array.isArray(data.events)){
+        alert('Invalid file. Must be a SWIMTRAK event list export.');
+        input.value='';return;
+      }
+      if(efMeetEvents.length&&!confirm('Replace current event list with imported events from: '+data.meetName+'?')){
+        input.value='';return;
+      }
+      efMeetEvents=data.events;
+      if(data.meetName){
+        const mn=document.getElementById('ef-meet-name');
+        if(mn)mn.value=data.meetName;
+      }
+      renderEfEventList();
+      renderEntryFormTab();
+      input.value='';
+    }catch(err){
+      alert('Failed to read file: '+err.message);
+      input.value='';
+    }
+  };
+  reader.readAsText(input.files[0]);
+}
 
 function efRenderPresetButtons(){
   const wrap=document.getElementById('ef-preset-buttons');if(!wrap)return;
