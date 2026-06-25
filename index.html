@@ -2777,6 +2777,15 @@ function efLoadDefaultEvents(){
 // ── Swimmer list ───────────────────────────────────────────
 // Resolve which tracker event name to use for PB lookup
 // Uses trackerEvent link if set, then tries fuzzy distance+stroke match, then falls back to ev.name
+function efGenderMatchesEvent(gender, evName){
+  const name=evName.toLowerCase();
+  const isGirls=name.includes('girl')||name.includes('female')||name.includes('women');
+  const isBoys=name.includes('boy')||name.includes('male')||name.includes('men');
+  if(isGirls&&!isBoys)return gender==='F';
+  if(isBoys&&!isGirls)return gender==='M';
+  return true; // open event
+}
+
 function efResolveTrackerEvent(ev){
   if(ev.trackerEvent)return ev.trackerEvent;
   // Fuzzy match: find a tracker EVENTS entry that contains the same distance and stroke keywords
@@ -2804,7 +2813,20 @@ function renderEntryFormTab(){
     const sid=s.id;
     if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
     const entries=efSwimmerEntries[sid];
-    const eventRows=efMeetEvents.map(ev=>{
+    // Filter events to only show gender-relevant ones
+    // If event name contains "Girls"/"Female"/"Women" → females only
+    // If event name contains "Boys"/"Male"/"Men" → males only
+    // If neither → show to both
+    const swimmerGender=s.gender||'M';
+    const genderFilteredEvents=efMeetEvents.filter(ev=>{
+      const name=ev.name.toLowerCase();
+      const isGirls=name.includes('girl')||name.includes('female')||name.includes('women');
+      const isBoys=name.includes('boy')||name.includes('male')||name.includes('men');
+      if(isGirls&&!isBoys)return swimmerGender==='F';
+      if(isBoys&&!isGirls)return swimmerGender==='M';
+      return true; // open/ungendered event — show to both
+    });
+    const eventRows=genderFilteredEvents.map(ev=>{
       // Only explicitly selected entries show as checked
       const isSelected=entries.hasOwnProperty(ev.name);
       const val=isSelected?entries[ev.name]:'';
@@ -2919,15 +2941,14 @@ function efAutoFillSwimmer(sid){
 function efAutoFillSwimmerSilent(sid){
   const efCourse=(document.getElementById('ef-course')||{}).value||'';
   if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
-  efMeetEvents.forEach(ev=>{
+  const gender=(swimmers.find(s=>s.id===sid)||{}).gender||'M';
+  efMeetEvents.filter(ev=>efGenderMatchesEvent(gender,ev.name)).forEach(ev=>{
     const trackerEv=efResolveTrackerEvent(ev);
     const sr=races.filter(r=>r.swimmerId===sid&&r.event===trackerEv&&r.finalTime&&(!efCourse||r.course===efCourse));
     if(sr.length){
-      // Fill with PB and select
       const best=sr.sort((a,b)=>a.finalTime-b.finalTime)[0];
       efSwimmerEntries[sid][ev.name]=formatTime(best.finalTime);
     }
-    // Events with no PB: don't auto-select — leave unchecked unless already in entries
   });
 }
 
@@ -2935,9 +2956,9 @@ function efAutoFillSwimmerSilent(sid){
 function efSelectAllSwimmerEvents(sid){
   const efCourse=(document.getElementById('ef-course')||{}).value||'';
   if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
-  efMeetEvents.forEach(ev=>{
+  const gender=(swimmers.find(s=>s.id===sid)||{}).gender||'M';
+  efMeetEvents.filter(ev=>efGenderMatchesEvent(gender,ev.name)).forEach(ev=>{
     if(!efSwimmerEntries[sid].hasOwnProperty(ev.name)){
-      // Auto-fill PB if available, otherwise blank
       const trackerEv=efResolveTrackerEvent(ev);
       const sr=races.filter(r=>r.swimmerId===sid&&r.event===trackerEv&&r.finalTime&&(!efCourse||r.course===efCourse));
       if(sr.length){
