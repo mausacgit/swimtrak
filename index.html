@@ -2758,18 +2758,22 @@ function renderEntryFormTab(){
       // Only explicitly selected entries show as checked
       const isSelected=entries.hasOwnProperty(ev.name);
       const val=isSelected?entries[ev.name]:'';
-      // PB is shown as hint only — never auto-selected
-      let pbTime='';
+      // Show both SC and LC PBs as hints
       const trackerEv=efResolveTrackerEvent(ev);
-      const sr=races.filter(r=>r.swimmerId===sid&&r.event===trackerEv&&r.finalTime&&(!efCourse||r.course===efCourse));
-      if(sr.length){const best=sr.sort((a,b)=>a.finalTime-b.finalTime)[0];pbTime=formatTime(best.finalTime);}
+      const allRaces=races.filter(r=>r.swimmerId===sid&&r.event===trackerEv&&r.finalTime);
+      const scRaces=allRaces.filter(r=>(r.course||'S')==='S');
+      const lcRaces=allRaces.filter(r=>r.course==='L');
+      const scBest=scRaces.length?formatTime([...scRaces].sort((a,b)=>a.finalTime-b.finalTime)[0].finalTime):'';
+      const lcBest=lcRaces.length?formatTime([...lcRaces].sort((a,b)=>a.finalTime-b.finalTime)[0].finalTime):'';
+      const pbHints=(scBest?'<span style="font-size:10px;color:#6b7a8d;font-family:monospace">SC:'+esc(scBest)+'</span>':'')+
+                    (lcBest?'<span style="font-size:10px;color:#6b7a8d;font-family:monospace">'+(scBest?' ':'')+'LC:'+esc(lcBest)+'</span>':'');
       return'<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid #2d3348">'+
         '<input type="checkbox" id="efse-cb-'+sid+'-'+ev.no+'" data-sid="'+sid+'" data-evname="'+esc(ev.name)+'" data-evano="'+ev.no+'" '+
           (isSelected?'checked':'')+
           ' onchange="efToggleSwimmerEvent(this)" style="width:auto;height:auto;flex-shrink:0">'+
         '<span style="font-size:11px;color:#8892a4;font-family:monospace;min-width:32px">'+ev.no+'</span>'+
         '<span style="font-size:11px;color:#e2e8f0;flex:1">'+esc(ev.name)+'</span>'+
-        (pbTime?'<span style="font-size:10px;color:#6b7a8d;font-family:monospace">PB:'+esc(pbTime)+'</span>':'')+
+        pbHints+
         '<input type="text" id="efse-time-'+sid+'-'+ev.no+'" placeholder="Entry time or NT" value="'+esc(val)+'" '+
           'oninput="efUpdateTime(this,'+sid+','+JSON.stringify(ev.name)+')" '+
           'style="width:90px;height:26px;font-size:11px;font-family:monospace;text-align:center">'+
