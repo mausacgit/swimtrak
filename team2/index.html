@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-<title>SWIMTRAK — ILUSTRE</title>
+<title>SWIMTRAK — Aquaknights</title>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="ILUSTRE"/>
-<meta name="theme-color" content="#065f46"/>
-<link rel="manifest" href="/swimtrak/manifest-ipsc.json"/>
-<link rel="apple-touch-icon" href="/swimtrak/icon-ipsc.png"/>
+<meta name="apple-mobile-web-app-title" content="Aquaknights"/>
+<meta name="theme-color" content="#00308F"/>
+<link rel="manifest" href="/swimtrak/manifest-aq.json"/>
+<link rel="apple-touch-icon" href="/swimtrak/icon-aq.png"/>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh}
-.topbar{background:#065f46;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:10px}
+.topbar{background:#00308F;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:10px}
 .topbar svg{width:20px;height:20px;stroke:#fff;stroke-width:1.8;fill:none}
 .topbar h1{font-size:15px;font-weight:700;letter-spacing:.2px}
 .topbar .sub{font-size:11px;opacity:.7;margin-left:6px}
@@ -20,12 +20,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,san
 .cat-tabs{display:flex;gap:5px;padding:8px 12px}
 .cat-tab{flex:1;padding:9px 6px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid #2d3348;background:#1a1d27;color:#8892a4;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;transition:all .12s;white-space:nowrap}
 .cat-tab svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
-.cat-tab.active{color:#fff;background:#047857;border-color:#047857}
+.cat-tab.active{color:#fff;background:#1d4ed8;border-color:#1d4ed8}
 .cat-tab:hover:not(.active){color:#e2e8f0;border-color:#3d4460}
 .sub-tabs{display:flex;border-top:1px solid #2d3348;padding:0 12px;overflow-x:auto}
 .sub-tab{padding:9px 11px;font-size:11.5px;cursor:pointer;border:none;background:none;color:#8892a4;border-bottom:2px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:4px;font-family:inherit;transition:color .12s}
 .sub-tab svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none}
-.sub-tab.active{color:#34d399;border-bottom-color:#34d399;font-weight:600}
+.sub-tab.active{color:#60a5fa;border-bottom-color:#60a5fa;font-weight:600}
 .sub-tab:hover:not(.active){color:#e2e8f0;background:#252a38}
 .tabs{display:flex}
 .tab{padding:10px 12px;font-size:12px;cursor:pointer;border:none;background:none;color:#8892a4;border-bottom:2px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:4px;font-family:inherit;transition:color .12s}
@@ -41,16 +41,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,san
 .metric-val{font-size:20px;font-weight:700;color:#e2e8f0}
 .metrics-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 select,input[type=text],input[type=number],input[type=date]{height:34px;padding:0 9px;border:1px solid #3d4460;border-radius:7px;font-size:13px;background:#252a38;color:#e2e8f0;width:100%;font-family:inherit;outline:none}
-select:focus,input:focus{border-color:#34d399;box-shadow:0 0 0 2px rgba(52,211,153,.15)}
+select:focus,input:focus{border-color:#60a5fa;box-shadow:0 0 0 2px rgba(96,165,250,.15)}
 textarea{padding:7px 9px;border:1px solid #3d4460;border-radius:7px;font-size:13px;background:#252a38;color:#e2e8f0;width:100%;font-family:inherit;outline:none;resize:vertical}
-textarea:focus{border-color:#34d399;box-shadow:0 0 0 2px rgba(52,211,153,.15)}
+textarea:focus{border-color:#60a5fa;box-shadow:0 0 0 2px rgba(96,165,250,.15)}
 label{font-size:11px;color:#8892a4;display:block;margin-bottom:3px;font-weight:500}
 .field{margin-bottom:9px}
 .form-row{display:flex;gap:9px;flex-wrap:wrap}
 .form-row .field{flex:1;min-width:100px}
 .btn{height:34px;padding:0 12px;border:1px solid #3d4460;border-radius:7px;background:#252a38;color:#e2e8f0;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:inherit;transition:background .1s,border-color .1s;white-space:nowrap}
 .btn svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
-.btn:hover{background:#2d3348;border-color:#34d399}
+.btn:hover{background:#2d3348;border-color:#60a5fa}
 .btn.primary{background:#1d4ed8;color:#fff;border-color:transparent}
 .btn.primary svg{stroke:#fff}
 .btn.primary:hover{background:#1e40af}
@@ -90,7 +90,7 @@ tbody tr:hover td{background:#252a38}
 .section-header h2{font-size:15px;font-weight:700;flex:1}
 .swimmer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;margin-bottom:12px}
 .swimmer-card{background:#1a1d27;border:1px solid #2d3348;border-radius:9px;padding:10px 12px;transition:border-color .15s,box-shadow .15s}
-.swimmer-card:hover{border-color:#34d399;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.swimmer-card:hover{border-color:#60a5fa;box-shadow:0 2px 8px rgba(0,0,0,.3)}
 .swimmer-card.male-card{border-left:3px solid #3b82f6}
 .swimmer-card.female-card{border-left:3px solid #ec4899}
 .sc-name{font-size:13px;font-weight:700;color:#e2e8f0}
@@ -157,7 +157,7 @@ canvas{background:#1a1d27}
 
 <div class="topbar">
   <svg viewBox="0 0 24 24"><path d="M2 12 Q6 6 10 12 Q14 18 18 12 Q22 6 22 12"/><circle cx="12" cy="4" r="2"/></svg>
-  <h1>ILUSTRE PERFORMANCE SWIM CLUB</h1>
+  <h1>St. Stephen's Manila Aquaknights</h1>
   <span class="sub">Swim Team Tracker</span>
 </div>
 
@@ -484,7 +484,7 @@ canvas{background:#1a1d27}
       <div class="field" style="max-width:110px"><label>Course</label><select id="me-course"><option value="S">Short Course</option><option value="L">Long Course</option></select></div>
     </div>
     <div class="form-row">
-      <div class="field"><label>Team name</label><input type="text" id="me-team-name" value="ILUSTRE PERFORMANCE SWIM CLUB"/></div>
+      <div class="field"><label>Team name</label><input type="text" id="me-team-name" value="St. Stephen's Manila Aquaknights"/></div>
       <div class="field" style="max-width:100px"><label>Team code</label><input type="text" id="me-team-code" placeholder="SSM"/></div>
       <div class="field"><label>City</label><input type="text" id="me-city" value="Manila"/></div>
     </div>
@@ -530,7 +530,7 @@ canvas{background:#1a1d27}
       </div>
       <div class="field" style="flex:1;min-width:160px">
         <label>Team / School name</label>
-        <input type="text" id="ef-team-name" value="ILUSTRE PERFORMANCE SWIM CLUB"/>
+        <input type="text" id="ef-team-name" value="St. Stephen&#39;s Manila Aquaknights"/>
       </div>
       <div class="field" style="max-width:120px">
         <label>Seed time course</label>
@@ -630,35 +630,35 @@ const EVENTS=['50m Freestyle','50m Backstroke','50m Breaststroke','50m Butterfly
 const STROKE_CODES={'Freestyle':1,'Backstroke':2,'Breaststroke':3,'Butterfly':4,'IM':5};
 const GC={HS:'bp',Elem:'bt'};
 
-let swimmers    = JSON.parse(localStorage.getItem('swt2_swimmers')||'[]');
-let races       = JSON.parse(localStorage.getItem('swt2_races')||'[]');
-let trainings   = JSON.parse(localStorage.getItem('swt2_trainings')||'[]');
-let attendance  = JSON.parse(localStorage.getItem('swt2_attendance')||'[]');
-let meetEntries = JSON.parse(localStorage.getItem('swt2_meetentries')||'[]');
+let swimmers    = JSON.parse(localStorage.getItem('swt_swimmers')||'[]');
+let races       = JSON.parse(localStorage.getItem('swt_races')||'[]');
+let trainings   = JSON.parse(localStorage.getItem('swt_trainings')||'[]');
+let attendance  = JSON.parse(localStorage.getItem('swt_attendance')||'[]');
+let meetEntries = JSON.parse(localStorage.getItem('swt_meetentries')||'[]');
 // new keys — won't affect existing data
-let meets       = JSON.parse(localStorage.getItem('swt2_meets')||'[]');
-let benchmarks  = JSON.parse(localStorage.getItem('swt2_benchmarks')||'[]');
-let pendingEntries = JSON.parse(localStorage.getItem('swt2_pending')||'[]');
+let meets       = JSON.parse(localStorage.getItem('swt_meets')||'[]');
+let benchmarks  = JSON.parse(localStorage.getItem('swt_benchmarks')||'[]');
+let pendingEntries = JSON.parse(localStorage.getItem('swt_pending')||'[]');
 // Pre-load Palarong benchmarks if none stored yet
 if(!benchmarks.length){
   benchmarks=[{"id": 1700000001, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 261.1, "swimmerName": "Evangelista"}, {"id": 1700000002, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 266.0, "swimmerName": "Cruz"}, {"id": 1700000003, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 287.51, "swimmerName": "Garra"}, {"id": 1700000004, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 288.45, "swimmerName": "Florendo"}, {"id": 1700000005, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Boys Elem", "place": 1, "time": 288.55, "swimmerName": "Blanco"}, {"id": 1700000006, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Boys Elem", "place": 2, "time": 288.95, "swimmerName": "Justiniano"}, {"id": 1700000007, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Girls Elem", "place": 1, "time": 324.11, "swimmerName": "Domacena"}, {"id": 1700000008, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Girls Elem", "place": 2, "time": 327.13, "swimmerName": "Icban"}, {"id": 1700000009, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Boys HS", "place": 1, "time": 61.87, "swimmerName": "Lentejas"}, {"id": 1700000010, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Boys HS", "place": 2, "time": 62.59, "swimmerName": "Paragatos"}, {"id": 1700000011, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Girls HS", "place": 1, "time": 67.7, "swimmerName": "Garra"}, {"id": 1700000012, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Girls HS", "place": 2, "time": 69.44, "swimmerName": "Uy KJ"}, {"id": 1700000013, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Boys Elem", "place": 1, "time": 69.92, "swimmerName": "Rivera"}, {"id": 1700000014, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Boys Elem", "place": 2, "time": 70.84, "swimmerName": "Blanco"}, {"id": 1700000015, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Girls Elem", "place": 1, "time": 77.95, "swimmerName": "Usman"}, {"id": 1700000016, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Girls Elem", "place": 2, "time": 78.75, "swimmerName": "Bakuteza"}, {"id": 1700000017, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys HS", "place": 1, "time": 67.17, "swimmerName": "Jose"}, {"id": 1700000018, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys HS", "place": 2, "time": 68.82, "swimmerName": "Sy KG"}, {"id": 1700000019, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls HS", "place": 1, "time": 75.63, "swimmerName": "David"}, {"id": 1700000020, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls HS", "place": 2, "time": 76.12, "swimmerName": "Antonio"}, {"id": 1700000021, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys Elem", "place": 1, "time": 84.22, "swimmerName": "Buenavidez"}, {"id": 1700000022, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys Elem", "place": 2, "time": 85.94, "swimmerName": "Cayabyab"}, {"id": 1700000023, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls Elem", "place": 1, "time": 86.16, "swimmerName": "Velez"}, {"id": 1700000024, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls Elem", "place": 2, "time": 86.77, "swimmerName": "Elazegui"}, {"id": 1700000025, "label": "Palarong NCR 2026", "event": "400m IM", "course": "L", "division": "Boys HS", "place": 1, "time": 287.1, "swimmerName": "Jose"}, {"id": 1700000026, "label": "Palarong NCR 2026", "event": "400m IM", "course": "L", "division": "Boys HS", "place": 2, "time": 288.88, "swimmerName": "Jose AC"}, {"id": 1700000027, "label": "Palarong NCR 2026", "event": "400m IM", "course": "L", "division": "Girls HS", "place": 1, "time": 317.54, "swimmerName": "Santor"}, {"id": 1700000028, "label": "Palarong NCR 2026", "event": "400m IM", "course": "L", "division": "Girls HS", "place": 2, "time": 325.04, "swimmerName": "Florendo"}, {"id": 1700000029, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 120.39, "swimmerName": "Chan KB"}, {"id": 1700000030, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 122.68, "swimmerName": "Evangelista"}, {"id": 1700000031, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 134.88, "swimmerName": "Rodriguez"}, {"id": 1700000032, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 138.67, "swimmerName": "Florendo"}, {"id": 1700000033, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Boys Elem", "place": 1, "time": 136.35, "swimmerName": "Blanco"}, {"id": 1700000034, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Boys Elem", "place": 2, "time": 149.83, "swimmerName": "Ibo"}, {"id": 1700000035, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Girls Elem", "place": 1, "time": 152.82, "swimmerName": "Isip"}, {"id": 1700000036, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Girls Elem", "place": 2, "time": 154.42, "swimmerName": "Domacena"}, {"id": 1700000037, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Boys HS", "place": 1, "time": 25.23, "swimmerName": "Ajido"}, {"id": 1700000038, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Boys HS", "place": 2, "time": 26.11, "swimmerName": "Chan KB"}, {"id": 1700000039, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Girls HS", "place": 1, "time": 29.2, "swimmerName": "Santor"}, {"id": 1700000040, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Girls HS", "place": 2, "time": 30.41, "swimmerName": "Martin"}, {"id": 1700000041, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Boys Elem", "place": 1, "time": 30.81, "swimmerName": "Alegre"}, {"id": 1700000042, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Boys Elem", "place": 2, "time": 31.29, "swimmerName": "Justiniano"}, {"id": 1700000043, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Girls Elem", "place": 1, "time": 32.77, "swimmerName": "Mendoza"}, {"id": 1700000044, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Girls Elem", "place": 2, "time": 33.04, "swimmerName": "Velez"}, {"id": 1700000045, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Boys HS", "place": 1, "time": 132.95, "swimmerName": "Jose"}, {"id": 1700000046, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Boys HS", "place": 2, "time": 136.62, "swimmerName": "Ajido"}, {"id": 1700000047, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Girls HS", "place": 1, "time": 147.26, "swimmerName": "Garra"}, {"id": 1700000048, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Girls HS", "place": 2, "time": 150.88, "swimmerName": "Santor"}, {"id": 1700000049, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Boys Elem", "place": 1, "time": 152.07, "swimmerName": "Blanco"}, {"id": 1700000050, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Boys Elem", "place": 2, "time": 155.65, "swimmerName": "Rivera"}, {"id": 1700000051, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Girls Elem", "place": 1, "time": 172.72, "swimmerName": "Montes"}, {"id": 1700000052, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Girls Elem", "place": 2, "time": 173.28, "swimmerName": "Arcenal"}, {"id": 1700000053, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys HS", "place": 1, "time": 31.02, "swimmerName": "Jose"}, {"id": 1700000054, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys HS", "place": 2, "time": 31.31, "swimmerName": "Bersamin"}, {"id": 1700000055, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls HS", "place": 1, "time": 33.85, "swimmerName": "David"}, {"id": 1700000056, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls HS", "place": 2, "time": 34.84, "swimmerName": "Antonio"}, {"id": 1700000057, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys Elem", "place": 1, "time": 37.17, "swimmerName": "Uy CA"}, {"id": 1700000058, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys Elem", "place": 2, "time": 38.01, "swimmerName": "Buenavidez"}, {"id": 1700000059, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls Elem", "place": 1, "time": 39.0, "swimmerName": "Velez"}, {"id": 1700000060, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls Elem", "place": 2, "time": 39.72, "swimmerName": "Elazegui"}, {"id": 1700000061, "label": "Palarong NCR 2026", "event": "200m Backstroke", "course": "L", "division": "Boys HS", "place": 1, "time": 136.96, "swimmerName": "Paragatos"}, {"id": 1700000062, "label": "Palarong NCR 2026", "event": "200m Backstroke", "course": "L", "division": "Boys HS", "place": 2, "time": 137.89, "swimmerName": "Sia"}, {"id": 1700000063, "label": "Palarong NCR 2026", "event": "200m Backstroke", "course": "L", "division": "Girls HS", "place": 1, "time": 147.68, "swimmerName": "Garra"}, {"id": 1700000064, "label": "Palarong NCR 2026", "event": "200m Backstroke", "course": "L", "division": "Girls HS", "place": 2, "time": 151.83, "swimmerName": "Uy KJ"}, {"id": 1700000065, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Boys HS", "place": 1, "time": 28.23, "swimmerName": "Lentejas"}, {"id": 1700000066, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Boys HS", "place": 2, "time": 28.69, "swimmerName": "Paragatos"}, {"id": 1700000067, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Girls HS", "place": 1, "time": 30.93, "swimmerName": "Garra"}, {"id": 1700000068, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Girls HS", "place": 2, "time": 31.83, "swimmerName": "Uy KJ"}, {"id": 1700000069, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Boys Elem", "place": 1, "time": 31.93, "swimmerName": "Rivera"}, {"id": 1700000070, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Boys Elem", "place": 2, "time": 32.88, "swimmerName": "Blanco"}, {"id": 1700000071, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Girls Elem", "place": 1, "time": 36.05, "swimmerName": "Bakuteza"}, {"id": 1700000072, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Girls Elem", "place": 2, "time": 36.16, "swimmerName": "Corpuz"}, {"id": 1700000073, "label": "Palarong NCR 2026", "event": "1500m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 1043.45, "swimmerName": "Evangelista"}, {"id": 1700000074, "label": "Palarong NCR 2026", "event": "1500m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 1052.77, "swimmerName": "Janda"}, {"id": 1700000075, "label": "Palarong NCR 2026", "event": "1500m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 1146.43, "swimmerName": "Mole"}, {"id": 1700000076, "label": "Palarong NCR 2026", "event": "1500m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 1151.66, "swimmerName": "Rodriguez"}, {"id": 1700000077, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 53.61, "swimmerName": "Chan KB"}, {"id": 1700000078, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 54.1, "swimmerName": "Ajido"}, {"id": 1700000079, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 62.3, "swimmerName": "Uy RP"}, {"id": 1700000080, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 62.32, "swimmerName": "Quinto"}, {"id": 1700000081, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Boys Elem", "place": 1, "time": 61.61, "swimmerName": "Rivera"}, {"id": 1700000082, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Boys Elem", "place": 2, "time": 63.78, "swimmerName": "Uy CA"}, {"id": 1700000083, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Girls Elem", "place": 1, "time": 70.4, "swimmerName": "Velez"}, {"id": 1700000084, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Girls Elem", "place": 2, "time": 70.74, "swimmerName": "Domacena"}, {"id": 1700000085, "label": "Palarong NCR 2026", "event": "200m Butterfly", "course": "L", "division": "Boys HS", "place": 1, "time": 130.91, "swimmerName": "Mojdeh"}, {"id": 1700000086, "label": "Palarong NCR 2026", "event": "200m Butterfly", "course": "L", "division": "Boys HS", "place": 2, "time": 132.14, "swimmerName": "Gonzalvo"}, {"id": 1700000087, "label": "Palarong NCR 2026", "event": "200m Butterfly", "course": "L", "division": "Girls HS", "place": 1, "time": 143.76, "swimmerName": "Santor"}, {"id": 1700000088, "label": "Palarong NCR 2026", "event": "200m Butterfly", "course": "L", "division": "Girls HS", "place": 2, "time": 148.0, "swimmerName": "Cuevas"}, {"id": 1700000089, "label": "Palarong NCR 2026", "event": "800m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 543.43, "swimmerName": "Evangelista"}, {"id": 1700000090, "label": "Palarong NCR 2026", "event": "800m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 544.03, "swimmerName": "Janda"}, {"id": 1700000091, "label": "Palarong NCR 2026", "event": "800m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 594.09, "swimmerName": "Rodriguez"}, {"id": 1700000092, "label": "Palarong NCR 2026", "event": "800m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 595.09, "swimmerName": "Florendo"}, {"id": 1700000093, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Boys HS", "place": 1, "time": 55.48, "swimmerName": "Ajido"}, {"id": 1700000094, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Boys HS", "place": 2, "time": 58.31, "swimmerName": "Chan KB"}, {"id": 1700000095, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Girls HS", "place": 1, "time": 63.6, "swimmerName": "Santor"}, {"id": 1700000096, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Girls HS", "place": 2, "time": 65.94, "swimmerName": "Cuevas"}, {"id": 1700000097, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Boys Elem", "place": 1, "time": 69.88, "swimmerName": "Justiniano"}, {"id": 1700000098, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Boys Elem", "place": 2, "time": 72.09, "swimmerName": "Cosidon"}, {"id": 1700000099, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Girls Elem", "place": 1, "time": 74.08, "swimmerName": "Icban"}, {"id": 1700000100, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Girls Elem", "place": 2, "time": 75.23, "swimmerName": "Montes"}, {"id": 1700000101, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 24.42, "swimmerName": "Ajido"}, {"id": 1700000102, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 24.78, "swimmerName": "Medenilla"}, {"id": 1700000103, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 28.1, "swimmerName": "Rivera N"}, {"id": 1700000104, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 28.28, "swimmerName": "Manocan"}, {"id": 1700000105, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Boys Elem", "place": 1, "time": 27.82, "swimmerName": "Rivera FA"}, {"id": 1700000106, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Boys Elem", "place": 2, "time": 27.97, "swimmerName": "Uy CA"}, {"id": 1700000107, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Girls Elem", "place": 1, "time": 31.61, "swimmerName": "Velez"}, {"id": 1700000108, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Girls Elem", "place": 2, "time": 31.8, "swimmerName": "Lamor"}, {"id": 1700000109, "label": "Palarong NCR 2026", "event": "200m Breaststroke", "course": "L", "division": "Boys HS", "place": 1, "time": 144.53, "swimmerName": "Jose"}, {"id": 1700000110, "label": "Palarong NCR 2026", "event": "200m Breaststroke", "course": "L", "division": "Boys HS", "place": 2, "time": 146.91, "swimmerName": "Sy KG"}, {"id": 1700000111, "label": "Palarong NCR 2026", "event": "200m Breaststroke", "course": "L", "division": "Girls HS", "place": 1, "time": 170.02, "swimmerName": "David"}, {"id": 1700000112, "label": "Palarong NCR 2026", "event": "200m Breaststroke", "course": "L", "division": "Girls HS", "place": 2, "time": 170.21, "swimmerName": "Mole"}, {"id": 1700000113, "label": "Pambansa QTS 2026", "event": "400m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 263.54, "swimmerName": "8th place"}, {"id": 1700000114, "label": "Pambansa QTS 2026", "event": "400m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 297.4, "swimmerName": "8th place"}, {"id": 1700000115, "label": "Pambansa QTS 2026", "event": "400m Freestyle", "course": "L", "division": "Boys Elem", "place": 8, "time": 299.62, "swimmerName": "8th place"}, {"id": 1700000116, "label": "Pambansa QTS 2026", "event": "400m Freestyle", "course": "L", "division": "Girls Elem", "place": 8, "time": 307.87, "swimmerName": "8th place"}, {"id": 1700000117, "label": "Pambansa QTS 2026", "event": "100m Backstroke", "course": "L", "division": "Boys HS", "place": 8, "time": 62.54, "swimmerName": "8th place"}, {"id": 1700000118, "label": "Pambansa QTS 2026", "event": "100m Backstroke", "course": "L", "division": "Girls HS", "place": 8, "time": 72.05, "swimmerName": "8th place"}, {"id": 1700000119, "label": "Pambansa QTS 2026", "event": "100m Backstroke", "course": "L", "division": "Boys Elem", "place": 8, "time": 72.84, "swimmerName": "8th place"}, {"id": 1700000120, "label": "Pambansa QTS 2026", "event": "100m Backstroke", "course": "L", "division": "Girls Elem", "place": 8, "time": 77.69, "swimmerName": "8th place"}, {"id": 1700000121, "label": "Pambansa QTS 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys HS", "place": 8, "time": 70.27, "swimmerName": "8th place"}, {"id": 1700000122, "label": "Pambansa QTS 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls HS", "place": 8, "time": 80.33, "swimmerName": "8th place"}, {"id": 1700000123, "label": "Pambansa QTS 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys Elem", "place": 8, "time": 81.21, "swimmerName": "8th place"}, {"id": 1700000124, "label": "Pambansa QTS 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls Elem", "place": 8, "time": 86.37, "swimmerName": "8th place"}, {"id": 1700000125, "label": "Pambansa QTS 2026", "event": "200m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 122.3, "swimmerName": "8th place"}, {"id": 1700000126, "label": "Pambansa QTS 2026", "event": "200m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 143.45, "swimmerName": "8th place"}, {"id": 1700000127, "label": "Pambansa QTS 2026", "event": "200m Freestyle", "course": "L", "division": "Boys Elem", "place": 8, "time": 141.07, "swimmerName": "8th place"}, {"id": 1700000128, "label": "Pambansa QTS 2026", "event": "200m Freestyle", "course": "L", "division": "Girls Elem", "place": 8, "time": 145.0, "swimmerName": "8th place"}, {"id": 1700000129, "label": "Pambansa QTS 2026", "event": "50m Butterfly", "course": "L", "division": "Boys HS", "place": 8, "time": 26.59, "swimmerName": "8th place"}, {"id": 1700000130, "label": "Pambansa QTS 2026", "event": "50m Butterfly", "course": "L", "division": "Girls HS", "place": 8, "time": 30.39, "swimmerName": "8th place"}, {"id": 1700000131, "label": "Pambansa QTS 2026", "event": "50m Butterfly", "course": "L", "division": "Boys Elem", "place": 8, "time": 30.59, "swimmerName": "8th place"}, {"id": 1700000132, "label": "Pambansa QTS 2026", "event": "50m Butterfly", "course": "L", "division": "Girls Elem", "place": 8, "time": 32.4, "swimmerName": "8th place"}, {"id": 1700000133, "label": "Pambansa QTS 2026", "event": "200m IM", "course": "L", "division": "Boys HS", "place": 8, "time": 139.81, "swimmerName": "8th place"}, {"id": 1700000134, "label": "Pambansa QTS 2026", "event": "200m IM", "course": "L", "division": "Girls HS", "place": 8, "time": 159.19, "swimmerName": "8th place"}, {"id": 1700000135, "label": "Pambansa QTS 2026", "event": "200m IM", "course": "L", "division": "Boys Elem", "place": 8, "time": 158.91, "swimmerName": "8th place"}, {"id": 1700000136, "label": "Pambansa QTS 2026", "event": "200m IM", "course": "L", "division": "Girls Elem", "place": 8, "time": 165.41, "swimmerName": "8th place"}, {"id": 1700000137, "label": "Pambansa QTS 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys HS", "place": 8, "time": 31.48, "swimmerName": "8th place"}, {"id": 1700000138, "label": "Pambansa QTS 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls HS", "place": 8, "time": 36.89, "swimmerName": "8th place"}, {"id": 1700000139, "label": "Pambansa QTS 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys Elem", "place": 8, "time": 36.09, "swimmerName": "8th place"}, {"id": 1700000140, "label": "Pambansa QTS 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls Elem", "place": 8, "time": 39.71, "swimmerName": "8th place"}, {"id": 1700000141, "label": "Pambansa QTS 2026", "event": "50m Backstroke", "course": "L", "division": "Boys HS", "place": 8, "time": 28.55, "swimmerName": "8th place"}, {"id": 1700000142, "label": "Pambansa QTS 2026", "event": "50m Backstroke", "course": "L", "division": "Girls HS", "place": 8, "time": 32.94, "swimmerName": "8th place"}, {"id": 1700000143, "label": "Pambansa QTS 2026", "event": "50m Backstroke", "course": "L", "division": "Boys Elem", "place": 8, "time": 33.42, "swimmerName": "8th place"}, {"id": 1700000144, "label": "Pambansa QTS 2026", "event": "50m Backstroke", "course": "L", "division": "Girls Elem", "place": 8, "time": 34.49, "swimmerName": "8th place"}, {"id": 1700000145, "label": "Pambansa QTS 2026", "event": "100m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 55.23, "swimmerName": "8th place"}, {"id": 1700000146, "label": "Pambansa QTS 2026", "event": "100m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 63.09, "swimmerName": "8th place"}, {"id": 1700000147, "label": "Pambansa QTS 2026", "event": "100m Freestyle", "course": "L", "division": "Boys Elem", "place": 8, "time": 63.48, "swimmerName": "8th place"}, {"id": 1700000148, "label": "Pambansa QTS 2026", "event": "100m Freestyle", "course": "L", "division": "Girls Elem", "place": 8, "time": 66.43, "swimmerName": "8th place"}, {"id": 1700000149, "label": "Pambansa QTS 2026", "event": "100m Butterfly", "course": "L", "division": "Boys HS", "place": 8, "time": 60.21, "swimmerName": "8th place"}, {"id": 1700000150, "label": "Pambansa QTS 2026", "event": "100m Butterfly", "course": "L", "division": "Girls HS", "place": 8, "time": 69.18, "swimmerName": "8th place"}, {"id": 1700000151, "label": "Pambansa QTS 2026", "event": "100m Butterfly", "course": "L", "division": "Boys Elem", "place": 8, "time": 68.59, "swimmerName": "8th place"}, {"id": 1700000152, "label": "Pambansa QTS 2026", "event": "100m Butterfly", "course": "L", "division": "Girls Elem", "place": 8, "time": 73.39, "swimmerName": "8th place"}, {"id": 1700000153, "label": "Pambansa QTS 2026", "event": "50m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 25.26, "swimmerName": "8th place"}, {"id": 1700000154, "label": "Pambansa QTS 2026", "event": "50m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 28.66, "swimmerName": "8th place"}, {"id": 1700000155, "label": "Pambansa QTS 2026", "event": "50m Freestyle", "course": "L", "division": "Boys Elem", "place": 8, "time": 28.6, "swimmerName": "8th place"}, {"id": 1700000156, "label": "Pambansa QTS 2026", "event": "50m Freestyle", "course": "L", "division": "Girls Elem", "place": 8, "time": 30.51, "swimmerName": "8th place"}, {"id": 1700000157, "label": "Pambansa QTS 2026", "event": "200m Breaststroke", "course": "L", "division": "Boys HS", "place": 8, "time": 159.52, "swimmerName": "8th place"}, {"id": 1700000158, "label": "Pambansa QTS 2026", "event": "200m Breaststroke", "course": "L", "division": "Girls HS", "place": 8, "time": 175.49, "swimmerName": "8th place"}, {"id": 1700000159, "label": "Pambansa QTS 2026", "event": "200m Backstroke", "course": "L", "division": "Boys HS", "place": 8, "time": 138.07, "swimmerName": "8th place"}, {"id": 1700000160, "label": "Pambansa QTS 2026", "event": "200m Backstroke", "course": "L", "division": "Girls HS", "place": 8, "time": 155.35, "swimmerName": "8th place"}, {"id": 1700000161, "label": "Pambansa QTS 2026", "event": "1500m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 1062.63, "swimmerName": "8th place"}, {"id": 1700000162, "label": "Pambansa QTS 2026", "event": "1500m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 1178.02, "swimmerName": "8th place"}, {"id": 1700000163, "label": "Pambansa QTS 2026", "event": "200m Butterfly", "course": "L", "division": "Boys HS", "place": 8, "time": 134.84, "swimmerName": "8th place"}, {"id": 1700000164, "label": "Pambansa QTS 2026", "event": "200m Butterfly", "course": "L", "division": "Girls HS", "place": 8, "time": 159.76, "swimmerName": "8th place"}, {"id": 1700000165, "label": "Pambansa QTS 2026", "event": "800m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 551.09, "swimmerName": "8th place"}, {"id": 1700000166, "label": "Pambansa QTS 2026", "event": "800m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 610.69, "swimmerName": "8th place"}, {"id": 1700000167, "label": "Pambansa QTS 2026", "event": "400m IM", "course": "L", "division": "Boys HS", "place": 8, "time": 303.09, "swimmerName": "8th place"}, {"id": 1700000168, "label": "Pambansa QTS 2026", "event": "400m IM", "course": "L", "division": "Girls HS", "place": 8, "time": 344.2, "swimmerName": "8th place"}];
-  localStorage.setItem('swt2_benchmarks',JSON.stringify(benchmarks));
-  localStorage.setItem('swt2_pending',JSON.stringify(pendingEntries));
+  localStorage.setItem('swt_benchmarks',JSON.stringify(benchmarks));
+  localStorage.setItem('swt_pending',JSON.stringify(pendingEntries));
 }
-let periods     = JSON.parse(localStorage.getItem('swt2_periods')||'[]');
+let periods     = JSON.parse(localStorage.getItem('swt_periods')||'[]');
 let editingId   = null;
 let attState    = {};
 let rosterGenderSplit = false;
 
 function save(){
-  localStorage.setItem('swt2_swimmers',JSON.stringify(swimmers));
-  localStorage.setItem('swt2_races',JSON.stringify(races));
-  localStorage.setItem('swt2_trainings',JSON.stringify(trainings));
-  localStorage.setItem('swt2_attendance',JSON.stringify(attendance));
-  localStorage.setItem('swt2_meetentries',JSON.stringify(meetEntries));
-  localStorage.setItem('swt2_meets',JSON.stringify(meets));
-  localStorage.setItem('swt2_benchmarks',JSON.stringify(benchmarks));
-  localStorage.setItem('swt2_periods',JSON.stringify(periods));
+  localStorage.setItem('swt_swimmers',JSON.stringify(swimmers));
+  localStorage.setItem('swt_races',JSON.stringify(races));
+  localStorage.setItem('swt_trainings',JSON.stringify(trainings));
+  localStorage.setItem('swt_attendance',JSON.stringify(attendance));
+  localStorage.setItem('swt_meetentries',JSON.stringify(meetEntries));
+  localStorage.setItem('swt_meets',JSON.stringify(meets));
+  localStorage.setItem('swt_benchmarks',JSON.stringify(benchmarks));
+  localStorage.setItem('swt_periods',JSON.stringify(periods));
 }
 
 // Returns swimmers sorted alphabetically by name
@@ -2510,11 +2510,11 @@ function goToSwimmer(id){showTab('roster');setTimeout(()=>showSwimmerDetail(pars
 // EXPORT / IMPORT
 // ===========================================================
 function exportData(){
-  const key='swt2';
+  const key='swt';
   const data={
     _version:1,
     _exported:new Date().toISOString(),
-    _team: "ILUSTRE PERFORMANCE SWIM CLUB",
+    _team: "St. Stephen's Manila Aquaknights",
     swimmers:    JSON.parse(localStorage.getItem(key+'_swimmers')||'[]'),
     races:       JSON.parse(localStorage.getItem(key+'_races')||'[]'),
     trainings:   JSON.parse(localStorage.getItem(key+'_trainings')||'[]'),
@@ -2546,7 +2546,7 @@ function importData(input){
         return;
       }
       // Detect which key prefix to use based on current page
-      const key='swt2';
+      const key='swt';
       if(!confirm('This will REPLACE all current data with the imported file. Your existing data will be lost. Continue?')){
         input.value='';return;
       }
@@ -2663,14 +2663,14 @@ const EF_PRESETS=[
     id:'sshs_sc_tryouts_2026_june',
     label:'Load SSHS SC Tryouts 2026',
     meetName:'SSHS SHORT COURSE TRYOUTS 2026 (JUNE)',
-    teamName:"ILUSTRE PERFORMANCE SWIM CLUB",
+    teamName:"St. Stephen's Manila Aquaknights",
     events:[{"no":1,"name":"200 Individual Medley Girls","trackerEvent":"200m IM"},{"no":2,"name":"200 Individual Medley Boys","trackerEvent":"200m IM"},{"no":3,"name":"100 Backstroke Girls","trackerEvent":"100m Backstroke"},{"no":4,"name":"100 Backstroke Boys","trackerEvent":"100m Backstroke"},{"no":5,"name":"50 Freestyle Girls","trackerEvent":"50m Freestyle"},{"no":6,"name":"50 Freestyle Boys","trackerEvent":"50m Freestyle"},{"no":7,"name":"100 Butterfly Girls","trackerEvent":"100m Butterfly"},{"no":8,"name":"100 Butterfly Boys","trackerEvent":"100m Butterfly"},{"no":9,"name":"50 Breaststroke Girls","trackerEvent":"50m Breaststroke"},{"no":10,"name":"50 Breaststroke Boys","trackerEvent":"50m Breaststroke"},{"no":11,"name":"200 Freestyle Girls","trackerEvent":"200m Freestyle"},{"no":12,"name":"200 Freestyle Boys","trackerEvent":"200m Freestyle"},{"no":13,"name":"100 Breaststroke Girls","trackerEvent":"100m Breaststroke"},{"no":14,"name":"100 Breaststroke Boys","trackerEvent":"100m Breaststroke"},{"no":15,"name":"50 Backstroke Girls","trackerEvent":"50m Backstroke"},{"no":16,"name":"50 Backstroke Boys","trackerEvent":"50m Backstroke"},{"no":17,"name":"100 Freestyle Girls","trackerEvent":"100m Freestyle"},{"no":18,"name":"100 Freestyle Boys","trackerEvent":"100m Freestyle"},{"no":19,"name":"50 Butterfly Girls","trackerEvent":"50m Butterfly"},{"no":20,"name":"50 Butterfly Boys","trackerEvent":"50m Butterfly"},{"no":21,"name":"100 Individual Medley Girls","trackerEvent":"100m IM"},{"no":22,"name":"100 Individual Medley Boys","trackerEvent":"100m IM"}]
   }
 ];
 
 function efRenderPresetButtons(){
   const wrap=document.getElementById('ef-preset-buttons');if(!wrap)return;
-  const dismissed=JSON.parse(localStorage.getItem('swt2_dismissed_presets')||'[]');
+  const dismissed=JSON.parse(localStorage.getItem('swt_dismissed_presets')||'[]');
   wrap.innerHTML=EF_PRESETS.filter(p=>!dismissed.includes(p.id)).map(p=>{
     const pid=p.id;
     return'<span style="display:inline-flex;align-items:center;gap:2px;margin-left:4px">'+
@@ -2693,9 +2693,9 @@ function efLoadPreset(id){
 }
 
 function efDismissPreset(id){
-  const dismissed=JSON.parse(localStorage.getItem('swt2_dismissed_presets')||'[]');
+  const dismissed=JSON.parse(localStorage.getItem('swt_dismissed_presets')||'[]');
   if(!dismissed.includes(id))dismissed.push(id);
-  localStorage.setItem('swt2_dismissed_presets',JSON.stringify(dismissed));
+  localStorage.setItem('swt_dismissed_presets',JSON.stringify(dismissed));
   efRenderPresetButtons();
 }
 
@@ -2705,7 +2705,7 @@ function efLoadSSHSJune2026(){
   const mn=document.getElementById('ef-meet-name');
   const tn=document.getElementById('ef-team-name');
   if(mn)mn.value="SSHS SHORT COURSE TRYOUTS 2026 (JUNE)";
-  if(tn)tn.value="ILUSTRE PERFORMANCE SWIM CLUB";
+  if(tn)tn.value="St. Stephen's Manila Aquaknights";
   efMeetEvents=[{"no": 1, "name": "200 Individual Medley Girls", "trackerEvent": "200m IM"}, {"no": 2, "name": "200 Individual Medley Boys", "trackerEvent": "200m IM"}, {"no": 3, "name": "100 Backstroke Girls", "trackerEvent": "100m Backstroke"}, {"no": 4, "name": "100 Backstroke Boys", "trackerEvent": "100m Backstroke"}, {"no": 5, "name": "50 Freestyle Girls", "trackerEvent": "50m Freestyle"}, {"no": 6, "name": "50 Freestyle Boys", "trackerEvent": "50m Freestyle"}, {"no": 7, "name": "100 Butterfly Girls", "trackerEvent": "100m Butterfly"}, {"no": 8, "name": "100 Butterfly Boys", "trackerEvent": "100m Butterfly"}, {"no": 9, "name": "50 Breaststroke Girls", "trackerEvent": "50m Breaststroke"}, {"no": 10, "name": "50 Breaststroke Boys", "trackerEvent": "50m Breaststroke"}, {"no": 11, "name": "200 Freestyle Girls", "trackerEvent": "200m Freestyle"}, {"no": 12, "name": "200 Freestyle Boys", "trackerEvent": "200m Freestyle"}, {"no": 13, "name": "100 Breaststroke Girls", "trackerEvent": "100m Breaststroke"}, {"no": 14, "name": "100 Breaststroke Boys", "trackerEvent": "100m Breaststroke"}, {"no": 15, "name": "50 Backstroke Girls", "trackerEvent": "50m Backstroke"}, {"no": 16, "name": "50 Backstroke Boys", "trackerEvent": "50m Backstroke"}, {"no": 17, "name": "100 Freestyle Girls", "trackerEvent": "100m Freestyle"}, {"no": 18, "name": "100 Freestyle Boys", "trackerEvent": "100m Freestyle"}, {"no": 19, "name": "50 Butterfly Girls", "trackerEvent": "50m Butterfly"}, {"no": 20, "name": "50 Butterfly Boys", "trackerEvent": "50m Butterfly"}, {"no": 21, "name": "100 Individual Medley Girls", "trackerEvent": "100m IM"}, {"no": 22, "name": "100 Individual Medley Boys", "trackerEvent": "100m IM"}];
   renderEfEventList();
   renderEntryFormTab();
@@ -2758,18 +2758,22 @@ function renderEntryFormTab(){
       // Only explicitly selected entries show as checked
       const isSelected=entries.hasOwnProperty(ev.name);
       const val=isSelected?entries[ev.name]:'';
-      // PB is shown as hint only — never auto-selected
-      let pbTime='';
+      // Show both SC and LC PBs as hints
       const trackerEv=efResolveTrackerEvent(ev);
-      const sr=races.filter(r=>r.swimmerId===sid&&r.event===trackerEv&&r.finalTime&&(!efCourse||r.course===efCourse));
-      if(sr.length){const best=sr.sort((a,b)=>a.finalTime-b.finalTime)[0];pbTime=formatTime(best.finalTime);}
+      const allRaces=races.filter(r=>r.swimmerId===sid&&r.event===trackerEv&&r.finalTime);
+      const scRaces=allRaces.filter(r=>(r.course||'S')==='S');
+      const lcRaces=allRaces.filter(r=>r.course==='L');
+      const scBest=scRaces.length?formatTime([...scRaces].sort((a,b)=>a.finalTime-b.finalTime)[0].finalTime):'';
+      const lcBest=lcRaces.length?formatTime([...lcRaces].sort((a,b)=>a.finalTime-b.finalTime)[0].finalTime):'';
+      const pbHints=(scBest?'<span style="font-size:10px;color:#6b7a8d;font-family:monospace">SC:'+esc(scBest)+'</span>':'')+
+                    (lcBest?'<span style="font-size:10px;color:#6b7a8d;font-family:monospace">'+(scBest?' ':'')+'LC:'+esc(lcBest)+'</span>':'');
       return'<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid #2d3348">'+
         '<input type="checkbox" id="efse-cb-'+sid+'-'+ev.no+'" data-sid="'+sid+'" data-evname="'+esc(ev.name)+'" data-evano="'+ev.no+'" '+
           (isSelected?'checked':'')+
           ' onchange="efToggleSwimmerEvent(this)" style="width:auto;height:auto;flex-shrink:0">'+
         '<span style="font-size:11px;color:#8892a4;font-family:monospace;min-width:32px">'+ev.no+'</span>'+
         '<span style="font-size:11px;color:#e2e8f0;flex:1">'+esc(ev.name)+'</span>'+
-        (pbTime?'<span style="font-size:10px;color:#6b7a8d;font-family:monospace">PB:'+esc(pbTime)+'</span>':'')+
+        pbHints+
         '<input type="text" id="efse-time-'+sid+'-'+ev.no+'" placeholder="Entry time or NT" value="'+esc(val)+'" '+
           'oninput="efUpdateTime(this,'+sid+','+JSON.stringify(ev.name)+')" '+
           'style="width:90px;height:26px;font-size:11px;font-family:monospace;text-align:center">'+
@@ -2926,7 +2930,7 @@ function efClearAll(){
 function generateEntryForm(){
   efSyncInputs(); // capture any unsaved typed times before generating
   const meetName=document.getElementById('ef-meet-name').value.trim()||'SMART - PHILIPPINE AQUATICS NATIONAL TRYOUT 2026';
-  const teamName=document.getElementById('ef-team-name').value.trim()||"ILUSTRE PERFORMANCE SWIM CLUB";
+  const teamName=document.getElementById('ef-team-name').value.trim()||"St. Stephen's Manila Aquaknights";
   const entries=[];
 
   swimmers.forEach(s=>{
