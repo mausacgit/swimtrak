@@ -2802,12 +2802,29 @@ function renderEntryFormTab(){
   }).join('');
 }
 
+// Sync all visible time inputs back to efSwimmerEntries before any re-render
+function efSyncInputs(){
+  document.querySelectorAll('#ef-swimmer-list input[id^="efse-time-"]').forEach(input=>{
+    const parts=input.id.split('-'); // efse-time-{sid}-{evNo}
+    const sid=parseInt(parts[2]);
+    const evNo=parseInt(parts[3]);
+    const ev=efMeetEvents.find(e=>e.no===evNo);
+    if(!ev)return;
+    if(!efSwimmerEntries[sid])efSwimmerEntries[sid]={};
+    // Only update if the event is selected (checkbox ticked)
+    const cb=document.getElementById('efse-cb-'+sid+'-'+evNo);
+    if(cb&&cb.checked){
+      efSwimmerEntries[sid][ev.name]=input.value.trim();
+    }
+  });
+}
+
 function efToggleExpand(sid,event){
   // Don't toggle if clicking the checkbox itself
   if(event&&event.target&&event.target.type==='checkbox')return;
+  efSyncInputs(); // save typed times before collapse/expand
   if(efExpandedSwimmers.has(sid))efExpandedSwimmers.delete(sid);
   else efExpandedSwimmers.add(sid);
-  // Re-render only the swimmer list, not the full tab
   renderEntryFormTab();
 }
 
@@ -2886,6 +2903,7 @@ function efToggleSwimmer(sid){
     // Expand the card so they can pick events
     efExpandedSwimmers.add(sid);
   } else {
+    efSyncInputs();
     efSelectedSwimmers.delete(sid);
     // Also clear any event entries and collapse
     efSwimmerEntries[sid]={};
@@ -2906,6 +2924,7 @@ function efClearAll(){
 
 // ── Generate ───────────────────────────────────────────────
 function generateEntryForm(){
+  efSyncInputs(); // capture any unsaved typed times before generating
   const meetName=document.getElementById('ef-meet-name').value.trim()||'SMART - PHILIPPINE AQUATICS NATIONAL TRYOUT 2026';
   const teamName=document.getElementById('ef-team-name').value.trim()||"St. Stephen's Manila Aquaknights";
   const entries=[];
