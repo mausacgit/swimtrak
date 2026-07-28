@@ -331,7 +331,7 @@ canvas{background:#1a1d27}
 
 <!-- == MEETS == -->
 <div id="section-meets" class="section">
-  <div class="section-header"><h2>Meets</h2></div>
+  <div class="section-header"><h2>Logged Meets</h2></div>
   <div class="card">
     <p class="card-title">Create meet</p>
     <div class="form-row">
@@ -735,7 +735,7 @@ const TAB_META={
   'training-overview':{label:'Training Log',cat:'training',icon:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'},
   trend:{label:'Group Trend',cat:'training',icon:'<svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>'},
   'log-race':{label:'Log Race',cat:'meets',icon:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>'},
-  meets:{label:'Meets',cat:'meets',icon:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'},
+  meets:{label:'Logged Meets',cat:'meets',icon:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'},
   'entry-form':{label:'Entry Form',cat:'meets',icon:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>'},
   'meet-entries':{label:'Meet Entries',cat:'meets',icon:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>'},
   'pb-chart':{label:'PB Chart',cat:'performance',icon:'<svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'},
@@ -1508,9 +1508,9 @@ function renderPBChart(){
   const canvas=document.getElementById('pbChartCanvas');
   const ctx=canvas.getContext('2d');
   // get SC and LC races
-  const scRaces=races.filter(r=>r.swimmerId===swId&&r.event===ev&&r.finalTime&&(r.course||'S')==='S').sort((a,b)=>a.date.localeCompare(b.date));
-  const lcRaces=races.filter(r=>r.swimmerId===swId&&r.event===ev&&r.finalTime&&r.course==='L').sort((a,b)=>a.date.localeCompare(b.date));
-  const allRaces=[...scRaces,...lcRaces].sort((a,b)=>a.date.localeCompare(b.date));
+  const scRaces=races.filter(r=>r.swimmerId===swId&&r.event===ev&&r.finalTime&&(r.course||'S')==='S').sort((a,b)=>resolveRaceDate(a).localeCompare(resolveRaceDate(b)));
+  const lcRaces=races.filter(r=>r.swimmerId===swId&&r.event===ev&&r.finalTime&&r.course==='L').sort((a,b)=>resolveRaceDate(a).localeCompare(resolveRaceDate(b)));
+  const allRaces=[...scRaces,...lcRaces].sort((a,b)=>resolveRaceDate(a).localeCompare(resolveRaceDate(b)));
   const legend=document.getElementById('pb-chart-legend');
   if(!allRaces.length){ctx.clearRect(0,0,canvas.width,canvas.height);legend.textContent='No data for this swimmer/event.';return;}
   const W=canvas.parentElement.offsetWidth-2||600;const H=280;
@@ -1519,7 +1519,7 @@ function renderPBChart(){
   // invert Y: faster (lower) time = higher on chart
   const times=allRaces.map(r=>r.finalTime);
   const mn=Math.min(...times);const mx=Math.max(...times);const rng=mx-mn||1;
-  const allDates=[...new Set(allRaces.map(r=>r.date))].sort();
+  const allDates=[...new Set(allRaces.map(r=>resolveRaceDate(r)))].filter(Boolean).sort();
   const dateIdx=d=>allDates.indexOf(d);
   const toX=i=>p.l+i*(cw/(Math.max(allDates.length-1,1)));
   // INVERTED: faster time = top = small Y value
@@ -1536,12 +1536,12 @@ function renderPBChart(){
     if(!raceSet.length)return;
     ctx.strokeStyle=color;ctx.lineWidth=2;ctx.setLineDash(dashed?[5,3]:[]);
     ctx.beginPath();
-    raceSet.forEach((r,i)=>{const x=toX(dateIdx(r.date));const y=toY(r.finalTime);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    raceSet.forEach((r,i)=>{const x=toX(dateIdx(resolveRaceDate(r)));const y=toY(r.finalTime);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
     ctx.stroke();ctx.setLineDash([]);
     // dots + time labels
     let scBest=Infinity;
     raceSet.forEach(r=>{
-      const x=toX(dateIdx(r.date));const y=toY(r.finalTime);
+      const x=toX(dateIdx(resolveRaceDate(r)));const y=toY(r.finalTime);
       const isPB=r.finalTime<scBest;if(r.finalTime<scBest)scBest=r.finalTime;
       const r2=isPB?5:3.5;
       ctx.beginPath();ctx.arc(x,y,r2,0,Math.PI*2);ctx.fillStyle=isPB?'#065f46':color;ctx.fill();
@@ -1575,6 +1575,24 @@ function renderPBChart(){
 // ===========================================================
 // RANKINGS
 // ===========================================================
+// Resolve the best available date for a race:
+// 1. Use the race's own date if it looks valid
+// 2. Fall back to the date stored on the matching meet record
+// 3. Fall back to '' if neither exists
+function resolveRaceDate(r){
+  const d=r.date||'';
+  if(d&&/^\d{4}-\d{2}-\d{2}$/.test(d)){
+    const mm=parseInt(d.slice(5,7),10),dd=parseInt(d.slice(8,10),10),yyyy=parseInt(d.slice(0,4),10);
+    if(mm>=1&&mm<=12&&dd>=1&&dd<=31&&yyyy>=1990&&yyyy<=2099)return d;
+  }
+  // Bad or missing date — look up from meets
+  if(r.meet){
+    const m=meets.find(x=>x.name&&x.name.trim().toLowerCase()===r.meet.trim().toLowerCase());
+    if(m&&m.date&&/^\d{4}-\d{2}-\d{2}$/.test(m.date))return m.date;
+  }
+  return d||'';
+}
+
 function renderRankings(){
   const ev=document.getElementById('rank-event').value;
   const course=document.getElementById('rank-course').value;
@@ -1591,7 +1609,7 @@ function renderRankings(){
     if(!rs.length)return;
     const best=Math.min(...rs.map(r=>r.finalTime));
     const bR=rs.find(r=>r.finalTime===best);
-    rows.push({s,best,date:bR.date,meet:bR.meet||'',course:bR.course||'S'});
+    rows.push({s,best,date:resolveRaceDate(bR),meet:bR.meet||'',course:bR.course||'S'});
   });
   rows.sort((a,b)=>a.best-b.best);
   const wrap=document.getElementById('rankings-table-wrap');
