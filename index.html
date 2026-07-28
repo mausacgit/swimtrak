@@ -1768,6 +1768,9 @@ function saveMeetEdit(id){
     races.forEach(r=>{if((r.meet||'')===newName)r.date=newDate;});
   }
   save();renderMeetsList();populateRaceMeetSelect();
+  // Refresh performance tabs so updated dates appear immediately
+  populateFilterEventSelects();populateBenchmarkSelects();renderRankings();
+  populatePBSelects();renderPBChart();
 }
 
 function deleteMeet(id){
