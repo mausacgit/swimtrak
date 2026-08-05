@@ -473,6 +473,92 @@ canvas{background:#1a1d27}
 </div>
 
 <!-- == MEET ENTRIES == -->
+<div id="section-relay-builder" class="section">
+  <div class="section-header"><h2>Relay Builder</h2></div>
+  <p style="font-size:12px;color:#8892a4;margin-bottom:12px">Plan relay teams with stroke distribution, stair-step validation, and automatic team balancing. Supports up to 20 swimmers across multiple teams.</p>
+
+  <div class="card">
+    <p class="card-title">Step 1 — Relay setup</p>
+    <div class="form-row">
+      <div class="field" style="flex:2;min-width:160px"><label>Relay name</label><input type="text" id="rb-name" placeholder="e.g. Fun Relay — All Squad"/></div>
+      <div class="field" style="max-width:90px"><label>Gender</label><select id="rb-gender"><option value="M">Boys</option><option value="F">Girls</option><option value="">Mixed</option></select></div>
+      <div class="field" style="max-width:80px"><label>Dist/leg (m)</label><input type="number" id="rb-dist" value="50" min="25" step="25"/></div>
+      <div class="field" style="max-width:80px"><label>Teams</label><input type="number" id="rb-num-teams" value="2" min="1" max="10"/></div>
+    </div>
+
+    <p style="font-size:11px;font-weight:600;color:#8892a4;margin-bottom:6px">Stroke distribution (legs per stroke)</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="field" style="margin:0;min-width:70px;max-width:80px"><label style="font-size:10px">Freestyle</label><input type="number" id="rb-fr" value="4" min="0" max="20" style="height:28px;font-size:13px"/></div>
+      <div class="field" style="margin:0;min-width:70px;max-width:80px"><label style="font-size:10px">Backstroke</label><input type="number" id="rb-bk" value="0" min="0" max="20" style="height:28px;font-size:13px"/></div>
+      <div class="field" style="margin:0;min-width:70px;max-width:80px"><label style="font-size:10px">Breaststroke</label><input type="number" id="rb-br" value="0" min="0" max="20" style="height:28px;font-size:13px"/></div>
+      <div class="field" style="margin:0;min-width:70px;max-width:80px"><label style="font-size:10px">Butterfly</label><input type="number" id="rb-fl" value="0" min="0" max="20" style="height:28px;font-size:13px"/></div>
+      <div style="align-self:flex-end;padding-bottom:2px;font-size:11px;color:#6b7a8d">= <span id="rb-total-legs">4</span> legs total</div>
+    </div>
+
+    <p style="font-size:11px;font-weight:600;color:#8892a4;margin-bottom:6px">Balance method</p>
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;cursor:pointer"><input type="radio" name="rb-balance" value="competitive" checked> Competitive (minimize time gap between teams)</label>
+      <label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;cursor:pointer"><input type="radio" name="rb-balance" value="snake"> Snake draft (alternate picks by speed)</label>
+    </div>
+
+    <p style="font-size:11px;font-weight:600;color:#8892a4;margin-bottom:5px">Stair-step age brackets <span style="font-weight:400;color:#4b5563">(optional — leave empty to disable)</span></p>
+    <div id="rb-brackets-wrap" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px">
+      <div style="display:inline-flex;align-items:center;gap:3px">
+        <input type="number" id="rb-new-min" placeholder="min" style="width:52px;height:26px;font-size:11px"/>
+        <span style="font-size:11px;color:#8892a4">–</span>
+        <input type="number" id="rb-new-max" placeholder="max (99=open)" style="width:80px;height:26px;font-size:11px"/>
+        <button class="btn xs" onclick="rbAddBracket()">+ Bracket</button>
+        <button class="btn xs" onclick="rbDefaultBrackets()">Load defaults</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
+      <button class="btn primary sm" onclick="rbOpenPool()">Step 2 — Select swimmers →</button>
+    </div>
+  </div>
+
+  <!-- Step 2: swimmer pool -->
+  <div class="card" id="rb-pool-card" style="display:none">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <p class="card-title" style="margin:0;flex:1">Step 2 — Select swimmers for this relay <span id="rb-pool-selected" style="color:#6b7a8d;font-weight:400"></span></p>
+      <button class="btn xs" onclick="rbSelectAllPool()">Select all</button>
+      <button class="btn xs" onclick="rbClearPool()">Clear</button>
+    </div>
+    <div id="rb-swimmer-pool" style="display:flex;flex-direction:column;gap:5px;max-height:320px;overflow-y:auto;margin-bottom:10px"></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
+      <button class="btn primary sm" onclick="rbAutoSuggest()">✦ Auto-suggest + balance teams</button>
+      <button class="btn sm" onclick="rbBuildManual()">Build manually →</button>
+    </div>
+  </div>
+
+  <!-- Step 3: teams workspace -->
+  <div id="rb-workspace" style="display:none">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      <p style="font-size:13px;font-weight:700;margin:0;flex:1;color:#e2e8f0" id="rb-workspace-title">Teams</p>
+      <span id="rb-validation-badge"></span>
+      <button class="btn xs" onclick="rbOverrideToggle()" id="rb-override-btn">Override stair-step</button>
+      <button class="btn xs danger" onclick="rbReset()">Start over</button>
+    </div>
+    <div id="rb-teams-wrap" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px"></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn primary sm" onclick="rbSaveAndExport()">
+        <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:#fff;stroke-width:2;fill:none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Save &amp; export relay sheet
+      </button>
+    </div>
+    <p id="rb-msg" class="msg-ok" style="margin-top:8px"></p>
+  </div>
+
+  <!-- Saved relays -->
+  <div class="card" style="margin-top:12px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <p class="card-title" style="margin:0;flex:1">Saved relay plans</p>
+    </div>
+    <div id="rb-saved-list"><div class="empty">No relay plans saved yet.</div></div>
+  </div>
+</div>
+
+
 <div id="section-meet-entries" class="section">
   <div class="section-header"><h2>Meet Entries</h2></div>
   <div class="card">
@@ -552,6 +638,10 @@ canvas{background:#1a1d27}
         ↑ Import list
         <input type="file" accept=".json" onchange="efImportEventList(this)" style="display:none">
       </label>
+      <label class="btn xs" style="cursor:pointer" title="Import events from Hy-Tek .hyv file">
+        ↑ Import .hyv
+        <input type="file" accept=".hyv,.HYV" onchange="efImportHyv(this)" style="display:none">
+      </label>
       <button class="btn xs" onclick="efExportEventList()" title="Export current event list as .json">↓ Export list</button>
     </div>
     <p style="font-size:11px;color:#8892a4;margin-bottom:8px">Add each event for this meet. Swimmers will pick from this list.</p>
@@ -583,6 +673,16 @@ canvas{background:#1a1d27}
       <button class="btn xs" onclick="efClearAll()">Clear all</button>
     </div>
     <div id="ef-swimmer-list"></div>
+  </div>
+
+  <!-- Relay Entries Card -->
+  <div class="card" id="ef-relay-card">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <p class="card-title" style="margin:0;flex:1">Relay entries</p>
+      <button class="btn xs" onclick="efAddRelayManual()">+ Add relay event</button>
+    </div>
+    <p style="font-size:11px;color:#8892a4;margin-bottom:8px">Add relay events manually or import from a .hyv file. Assign swimmers using saved relay plans from the Relay Builder.</p>
+    <div id="ef-relay-list"></div>
   </div>
 
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
@@ -649,11 +749,20 @@ if(!benchmarks.length){
   benchmarks=[{"id": 1700000001, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 261.1, "swimmerName": "Evangelista"}, {"id": 1700000002, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 266.0, "swimmerName": "Cruz"}, {"id": 1700000003, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 287.51, "swimmerName": "Garra"}, {"id": 1700000004, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 288.45, "swimmerName": "Florendo"}, {"id": 1700000005, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Boys Elem", "place": 1, "time": 288.55, "swimmerName": "Blanco"}, {"id": 1700000006, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Boys Elem", "place": 2, "time": 288.95, "swimmerName": "Justiniano"}, {"id": 1700000007, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Girls Elem", "place": 1, "time": 324.11, "swimmerName": "Domacena"}, {"id": 1700000008, "label": "Palarong NCR 2026", "event": "400m Freestyle", "course": "L", "division": "Girls Elem", "place": 2, "time": 327.13, "swimmerName": "Icban"}, {"id": 1700000009, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Boys HS", "place": 1, "time": 61.87, "swimmerName": "Lentejas"}, {"id": 1700000010, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Boys HS", "place": 2, "time": 62.59, "swimmerName": "Paragatos"}, {"id": 1700000011, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Girls HS", "place": 1, "time": 67.7, "swimmerName": "Garra"}, {"id": 1700000012, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Girls HS", "place": 2, "time": 69.44, "swimmerName": "Uy KJ"}, {"id": 1700000013, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Boys Elem", "place": 1, "time": 69.92, "swimmerName": "Rivera"}, {"id": 1700000014, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Boys Elem", "place": 2, "time": 70.84, "swimmerName": "Blanco"}, {"id": 1700000015, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Girls Elem", "place": 1, "time": 77.95, "swimmerName": "Usman"}, {"id": 1700000016, "label": "Palarong NCR 2026", "event": "100m Backstroke", "course": "L", "division": "Girls Elem", "place": 2, "time": 78.75, "swimmerName": "Bakuteza"}, {"id": 1700000017, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys HS", "place": 1, "time": 67.17, "swimmerName": "Jose"}, {"id": 1700000018, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys HS", "place": 2, "time": 68.82, "swimmerName": "Sy KG"}, {"id": 1700000019, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls HS", "place": 1, "time": 75.63, "swimmerName": "David"}, {"id": 1700000020, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls HS", "place": 2, "time": 76.12, "swimmerName": "Antonio"}, {"id": 1700000021, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys Elem", "place": 1, "time": 84.22, "swimmerName": "Buenavidez"}, {"id": 1700000022, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys Elem", "place": 2, "time": 85.94, "swimmerName": "Cayabyab"}, {"id": 1700000023, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls Elem", "place": 1, "time": 86.16, "swimmerName": "Velez"}, {"id": 1700000024, "label": "Palarong NCR 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls Elem", "place": 2, "time": 86.77, "swimmerName": "Elazegui"}, {"id": 1700000025, "label": "Palarong NCR 2026", "event": "400m IM", "course": "L", "division": "Boys HS", "place": 1, "time": 287.1, "swimmerName": "Jose"}, {"id": 1700000026, "label": "Palarong NCR 2026", "event": "400m IM", "course": "L", "division": "Boys HS", "place": 2, "time": 288.88, "swimmerName": "Jose AC"}, {"id": 1700000027, "label": "Palarong NCR 2026", "event": "400m IM", "course": "L", "division": "Girls HS", "place": 1, "time": 317.54, "swimmerName": "Santor"}, {"id": 1700000028, "label": "Palarong NCR 2026", "event": "400m IM", "course": "L", "division": "Girls HS", "place": 2, "time": 325.04, "swimmerName": "Florendo"}, {"id": 1700000029, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 120.39, "swimmerName": "Chan KB"}, {"id": 1700000030, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 122.68, "swimmerName": "Evangelista"}, {"id": 1700000031, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 134.88, "swimmerName": "Rodriguez"}, {"id": 1700000032, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 138.67, "swimmerName": "Florendo"}, {"id": 1700000033, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Boys Elem", "place": 1, "time": 136.35, "swimmerName": "Blanco"}, {"id": 1700000034, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Boys Elem", "place": 2, "time": 149.83, "swimmerName": "Ibo"}, {"id": 1700000035, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Girls Elem", "place": 1, "time": 152.82, "swimmerName": "Isip"}, {"id": 1700000036, "label": "Palarong NCR 2026", "event": "200m Freestyle", "course": "L", "division": "Girls Elem", "place": 2, "time": 154.42, "swimmerName": "Domacena"}, {"id": 1700000037, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Boys HS", "place": 1, "time": 25.23, "swimmerName": "Ajido"}, {"id": 1700000038, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Boys HS", "place": 2, "time": 26.11, "swimmerName": "Chan KB"}, {"id": 1700000039, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Girls HS", "place": 1, "time": 29.2, "swimmerName": "Santor"}, {"id": 1700000040, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Girls HS", "place": 2, "time": 30.41, "swimmerName": "Martin"}, {"id": 1700000041, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Boys Elem", "place": 1, "time": 30.81, "swimmerName": "Alegre"}, {"id": 1700000042, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Boys Elem", "place": 2, "time": 31.29, "swimmerName": "Justiniano"}, {"id": 1700000043, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Girls Elem", "place": 1, "time": 32.77, "swimmerName": "Mendoza"}, {"id": 1700000044, "label": "Palarong NCR 2026", "event": "50m Butterfly", "course": "L", "division": "Girls Elem", "place": 2, "time": 33.04, "swimmerName": "Velez"}, {"id": 1700000045, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Boys HS", "place": 1, "time": 132.95, "swimmerName": "Jose"}, {"id": 1700000046, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Boys HS", "place": 2, "time": 136.62, "swimmerName": "Ajido"}, {"id": 1700000047, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Girls HS", "place": 1, "time": 147.26, "swimmerName": "Garra"}, {"id": 1700000048, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Girls HS", "place": 2, "time": 150.88, "swimmerName": "Santor"}, {"id": 1700000049, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Boys Elem", "place": 1, "time": 152.07, "swimmerName": "Blanco"}, {"id": 1700000050, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Boys Elem", "place": 2, "time": 155.65, "swimmerName": "Rivera"}, {"id": 1700000051, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Girls Elem", "place": 1, "time": 172.72, "swimmerName": "Montes"}, {"id": 1700000052, "label": "Palarong NCR 2026", "event": "200m IM", "course": "L", "division": "Girls Elem", "place": 2, "time": 173.28, "swimmerName": "Arcenal"}, {"id": 1700000053, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys HS", "place": 1, "time": 31.02, "swimmerName": "Jose"}, {"id": 1700000054, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys HS", "place": 2, "time": 31.31, "swimmerName": "Bersamin"}, {"id": 1700000055, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls HS", "place": 1, "time": 33.85, "swimmerName": "David"}, {"id": 1700000056, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls HS", "place": 2, "time": 34.84, "swimmerName": "Antonio"}, {"id": 1700000057, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys Elem", "place": 1, "time": 37.17, "swimmerName": "Uy CA"}, {"id": 1700000058, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys Elem", "place": 2, "time": 38.01, "swimmerName": "Buenavidez"}, {"id": 1700000059, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls Elem", "place": 1, "time": 39.0, "swimmerName": "Velez"}, {"id": 1700000060, "label": "Palarong NCR 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls Elem", "place": 2, "time": 39.72, "swimmerName": "Elazegui"}, {"id": 1700000061, "label": "Palarong NCR 2026", "event": "200m Backstroke", "course": "L", "division": "Boys HS", "place": 1, "time": 136.96, "swimmerName": "Paragatos"}, {"id": 1700000062, "label": "Palarong NCR 2026", "event": "200m Backstroke", "course": "L", "division": "Boys HS", "place": 2, "time": 137.89, "swimmerName": "Sia"}, {"id": 1700000063, "label": "Palarong NCR 2026", "event": "200m Backstroke", "course": "L", "division": "Girls HS", "place": 1, "time": 147.68, "swimmerName": "Garra"}, {"id": 1700000064, "label": "Palarong NCR 2026", "event": "200m Backstroke", "course": "L", "division": "Girls HS", "place": 2, "time": 151.83, "swimmerName": "Uy KJ"}, {"id": 1700000065, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Boys HS", "place": 1, "time": 28.23, "swimmerName": "Lentejas"}, {"id": 1700000066, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Boys HS", "place": 2, "time": 28.69, "swimmerName": "Paragatos"}, {"id": 1700000067, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Girls HS", "place": 1, "time": 30.93, "swimmerName": "Garra"}, {"id": 1700000068, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Girls HS", "place": 2, "time": 31.83, "swimmerName": "Uy KJ"}, {"id": 1700000069, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Boys Elem", "place": 1, "time": 31.93, "swimmerName": "Rivera"}, {"id": 1700000070, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Boys Elem", "place": 2, "time": 32.88, "swimmerName": "Blanco"}, {"id": 1700000071, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Girls Elem", "place": 1, "time": 36.05, "swimmerName": "Bakuteza"}, {"id": 1700000072, "label": "Palarong NCR 2026", "event": "50m Backstroke", "course": "L", "division": "Girls Elem", "place": 2, "time": 36.16, "swimmerName": "Corpuz"}, {"id": 1700000073, "label": "Palarong NCR 2026", "event": "1500m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 1043.45, "swimmerName": "Evangelista"}, {"id": 1700000074, "label": "Palarong NCR 2026", "event": "1500m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 1052.77, "swimmerName": "Janda"}, {"id": 1700000075, "label": "Palarong NCR 2026", "event": "1500m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 1146.43, "swimmerName": "Mole"}, {"id": 1700000076, "label": "Palarong NCR 2026", "event": "1500m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 1151.66, "swimmerName": "Rodriguez"}, {"id": 1700000077, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 53.61, "swimmerName": "Chan KB"}, {"id": 1700000078, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 54.1, "swimmerName": "Ajido"}, {"id": 1700000079, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 62.3, "swimmerName": "Uy RP"}, {"id": 1700000080, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 62.32, "swimmerName": "Quinto"}, {"id": 1700000081, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Boys Elem", "place": 1, "time": 61.61, "swimmerName": "Rivera"}, {"id": 1700000082, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Boys Elem", "place": 2, "time": 63.78, "swimmerName": "Uy CA"}, {"id": 1700000083, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Girls Elem", "place": 1, "time": 70.4, "swimmerName": "Velez"}, {"id": 1700000084, "label": "Palarong NCR 2026", "event": "100m Freestyle", "course": "L", "division": "Girls Elem", "place": 2, "time": 70.74, "swimmerName": "Domacena"}, {"id": 1700000085, "label": "Palarong NCR 2026", "event": "200m Butterfly", "course": "L", "division": "Boys HS", "place": 1, "time": 130.91, "swimmerName": "Mojdeh"}, {"id": 1700000086, "label": "Palarong NCR 2026", "event": "200m Butterfly", "course": "L", "division": "Boys HS", "place": 2, "time": 132.14, "swimmerName": "Gonzalvo"}, {"id": 1700000087, "label": "Palarong NCR 2026", "event": "200m Butterfly", "course": "L", "division": "Girls HS", "place": 1, "time": 143.76, "swimmerName": "Santor"}, {"id": 1700000088, "label": "Palarong NCR 2026", "event": "200m Butterfly", "course": "L", "division": "Girls HS", "place": 2, "time": 148.0, "swimmerName": "Cuevas"}, {"id": 1700000089, "label": "Palarong NCR 2026", "event": "800m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 543.43, "swimmerName": "Evangelista"}, {"id": 1700000090, "label": "Palarong NCR 2026", "event": "800m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 544.03, "swimmerName": "Janda"}, {"id": 1700000091, "label": "Palarong NCR 2026", "event": "800m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 594.09, "swimmerName": "Rodriguez"}, {"id": 1700000092, "label": "Palarong NCR 2026", "event": "800m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 595.09, "swimmerName": "Florendo"}, {"id": 1700000093, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Boys HS", "place": 1, "time": 55.48, "swimmerName": "Ajido"}, {"id": 1700000094, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Boys HS", "place": 2, "time": 58.31, "swimmerName": "Chan KB"}, {"id": 1700000095, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Girls HS", "place": 1, "time": 63.6, "swimmerName": "Santor"}, {"id": 1700000096, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Girls HS", "place": 2, "time": 65.94, "swimmerName": "Cuevas"}, {"id": 1700000097, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Boys Elem", "place": 1, "time": 69.88, "swimmerName": "Justiniano"}, {"id": 1700000098, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Boys Elem", "place": 2, "time": 72.09, "swimmerName": "Cosidon"}, {"id": 1700000099, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Girls Elem", "place": 1, "time": 74.08, "swimmerName": "Icban"}, {"id": 1700000100, "label": "Palarong NCR 2026", "event": "100m Butterfly", "course": "L", "division": "Girls Elem", "place": 2, "time": 75.23, "swimmerName": "Montes"}, {"id": 1700000101, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Boys HS", "place": 1, "time": 24.42, "swimmerName": "Ajido"}, {"id": 1700000102, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Boys HS", "place": 2, "time": 24.78, "swimmerName": "Medenilla"}, {"id": 1700000103, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Girls HS", "place": 1, "time": 28.1, "swimmerName": "Rivera N"}, {"id": 1700000104, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Girls HS", "place": 2, "time": 28.28, "swimmerName": "Manocan"}, {"id": 1700000105, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Boys Elem", "place": 1, "time": 27.82, "swimmerName": "Rivera FA"}, {"id": 1700000106, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Boys Elem", "place": 2, "time": 27.97, "swimmerName": "Uy CA"}, {"id": 1700000107, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Girls Elem", "place": 1, "time": 31.61, "swimmerName": "Velez"}, {"id": 1700000108, "label": "Palarong NCR 2026", "event": "50m Freestyle", "course": "L", "division": "Girls Elem", "place": 2, "time": 31.8, "swimmerName": "Lamor"}, {"id": 1700000109, "label": "Palarong NCR 2026", "event": "200m Breaststroke", "course": "L", "division": "Boys HS", "place": 1, "time": 144.53, "swimmerName": "Jose"}, {"id": 1700000110, "label": "Palarong NCR 2026", "event": "200m Breaststroke", "course": "L", "division": "Boys HS", "place": 2, "time": 146.91, "swimmerName": "Sy KG"}, {"id": 1700000111, "label": "Palarong NCR 2026", "event": "200m Breaststroke", "course": "L", "division": "Girls HS", "place": 1, "time": 170.02, "swimmerName": "David"}, {"id": 1700000112, "label": "Palarong NCR 2026", "event": "200m Breaststroke", "course": "L", "division": "Girls HS", "place": 2, "time": 170.21, "swimmerName": "Mole"}, {"id": 1700000113, "label": "Pambansa QTS 2026", "event": "400m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 263.54, "swimmerName": "8th place"}, {"id": 1700000114, "label": "Pambansa QTS 2026", "event": "400m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 297.4, "swimmerName": "8th place"}, {"id": 1700000115, "label": "Pambansa QTS 2026", "event": "400m Freestyle", "course": "L", "division": "Boys Elem", "place": 8, "time": 299.62, "swimmerName": "8th place"}, {"id": 1700000116, "label": "Pambansa QTS 2026", "event": "400m Freestyle", "course": "L", "division": "Girls Elem", "place": 8, "time": 307.87, "swimmerName": "8th place"}, {"id": 1700000117, "label": "Pambansa QTS 2026", "event": "100m Backstroke", "course": "L", "division": "Boys HS", "place": 8, "time": 62.54, "swimmerName": "8th place"}, {"id": 1700000118, "label": "Pambansa QTS 2026", "event": "100m Backstroke", "course": "L", "division": "Girls HS", "place": 8, "time": 72.05, "swimmerName": "8th place"}, {"id": 1700000119, "label": "Pambansa QTS 2026", "event": "100m Backstroke", "course": "L", "division": "Boys Elem", "place": 8, "time": 72.84, "swimmerName": "8th place"}, {"id": 1700000120, "label": "Pambansa QTS 2026", "event": "100m Backstroke", "course": "L", "division": "Girls Elem", "place": 8, "time": 77.69, "swimmerName": "8th place"}, {"id": 1700000121, "label": "Pambansa QTS 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys HS", "place": 8, "time": 70.27, "swimmerName": "8th place"}, {"id": 1700000122, "label": "Pambansa QTS 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls HS", "place": 8, "time": 80.33, "swimmerName": "8th place"}, {"id": 1700000123, "label": "Pambansa QTS 2026", "event": "100m Breaststroke", "course": "L", "division": "Boys Elem", "place": 8, "time": 81.21, "swimmerName": "8th place"}, {"id": 1700000124, "label": "Pambansa QTS 2026", "event": "100m Breaststroke", "course": "L", "division": "Girls Elem", "place": 8, "time": 86.37, "swimmerName": "8th place"}, {"id": 1700000125, "label": "Pambansa QTS 2026", "event": "200m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 122.3, "swimmerName": "8th place"}, {"id": 1700000126, "label": "Pambansa QTS 2026", "event": "200m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 143.45, "swimmerName": "8th place"}, {"id": 1700000127, "label": "Pambansa QTS 2026", "event": "200m Freestyle", "course": "L", "division": "Boys Elem", "place": 8, "time": 141.07, "swimmerName": "8th place"}, {"id": 1700000128, "label": "Pambansa QTS 2026", "event": "200m Freestyle", "course": "L", "division": "Girls Elem", "place": 8, "time": 145.0, "swimmerName": "8th place"}, {"id": 1700000129, "label": "Pambansa QTS 2026", "event": "50m Butterfly", "course": "L", "division": "Boys HS", "place": 8, "time": 26.59, "swimmerName": "8th place"}, {"id": 1700000130, "label": "Pambansa QTS 2026", "event": "50m Butterfly", "course": "L", "division": "Girls HS", "place": 8, "time": 30.39, "swimmerName": "8th place"}, {"id": 1700000131, "label": "Pambansa QTS 2026", "event": "50m Butterfly", "course": "L", "division": "Boys Elem", "place": 8, "time": 30.59, "swimmerName": "8th place"}, {"id": 1700000132, "label": "Pambansa QTS 2026", "event": "50m Butterfly", "course": "L", "division": "Girls Elem", "place": 8, "time": 32.4, "swimmerName": "8th place"}, {"id": 1700000133, "label": "Pambansa QTS 2026", "event": "200m IM", "course": "L", "division": "Boys HS", "place": 8, "time": 139.81, "swimmerName": "8th place"}, {"id": 1700000134, "label": "Pambansa QTS 2026", "event": "200m IM", "course": "L", "division": "Girls HS", "place": 8, "time": 159.19, "swimmerName": "8th place"}, {"id": 1700000135, "label": "Pambansa QTS 2026", "event": "200m IM", "course": "L", "division": "Boys Elem", "place": 8, "time": 158.91, "swimmerName": "8th place"}, {"id": 1700000136, "label": "Pambansa QTS 2026", "event": "200m IM", "course": "L", "division": "Girls Elem", "place": 8, "time": 165.41, "swimmerName": "8th place"}, {"id": 1700000137, "label": "Pambansa QTS 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys HS", "place": 8, "time": 31.48, "swimmerName": "8th place"}, {"id": 1700000138, "label": "Pambansa QTS 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls HS", "place": 8, "time": 36.89, "swimmerName": "8th place"}, {"id": 1700000139, "label": "Pambansa QTS 2026", "event": "50m Breaststroke", "course": "L", "division": "Boys Elem", "place": 8, "time": 36.09, "swimmerName": "8th place"}, {"id": 1700000140, "label": "Pambansa QTS 2026", "event": "50m Breaststroke", "course": "L", "division": "Girls Elem", "place": 8, "time": 39.71, "swimmerName": "8th place"}, {"id": 1700000141, "label": "Pambansa QTS 2026", "event": "50m Backstroke", "course": "L", "division": "Boys HS", "place": 8, "time": 28.55, "swimmerName": "8th place"}, {"id": 1700000142, "label": "Pambansa QTS 2026", "event": "50m Backstroke", "course": "L", "division": "Girls HS", "place": 8, "time": 32.94, "swimmerName": "8th place"}, {"id": 1700000143, "label": "Pambansa QTS 2026", "event": "50m Backstroke", "course": "L", "division": "Boys Elem", "place": 8, "time": 33.42, "swimmerName": "8th place"}, {"id": 1700000144, "label": "Pambansa QTS 2026", "event": "50m Backstroke", "course": "L", "division": "Girls Elem", "place": 8, "time": 34.49, "swimmerName": "8th place"}, {"id": 1700000145, "label": "Pambansa QTS 2026", "event": "100m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 55.23, "swimmerName": "8th place"}, {"id": 1700000146, "label": "Pambansa QTS 2026", "event": "100m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 63.09, "swimmerName": "8th place"}, {"id": 1700000147, "label": "Pambansa QTS 2026", "event": "100m Freestyle", "course": "L", "division": "Boys Elem", "place": 8, "time": 63.48, "swimmerName": "8th place"}, {"id": 1700000148, "label": "Pambansa QTS 2026", "event": "100m Freestyle", "course": "L", "division": "Girls Elem", "place": 8, "time": 66.43, "swimmerName": "8th place"}, {"id": 1700000149, "label": "Pambansa QTS 2026", "event": "100m Butterfly", "course": "L", "division": "Boys HS", "place": 8, "time": 60.21, "swimmerName": "8th place"}, {"id": 1700000150, "label": "Pambansa QTS 2026", "event": "100m Butterfly", "course": "L", "division": "Girls HS", "place": 8, "time": 69.18, "swimmerName": "8th place"}, {"id": 1700000151, "label": "Pambansa QTS 2026", "event": "100m Butterfly", "course": "L", "division": "Boys Elem", "place": 8, "time": 68.59, "swimmerName": "8th place"}, {"id": 1700000152, "label": "Pambansa QTS 2026", "event": "100m Butterfly", "course": "L", "division": "Girls Elem", "place": 8, "time": 73.39, "swimmerName": "8th place"}, {"id": 1700000153, "label": "Pambansa QTS 2026", "event": "50m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 25.26, "swimmerName": "8th place"}, {"id": 1700000154, "label": "Pambansa QTS 2026", "event": "50m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 28.66, "swimmerName": "8th place"}, {"id": 1700000155, "label": "Pambansa QTS 2026", "event": "50m Freestyle", "course": "L", "division": "Boys Elem", "place": 8, "time": 28.6, "swimmerName": "8th place"}, {"id": 1700000156, "label": "Pambansa QTS 2026", "event": "50m Freestyle", "course": "L", "division": "Girls Elem", "place": 8, "time": 30.51, "swimmerName": "8th place"}, {"id": 1700000157, "label": "Pambansa QTS 2026", "event": "200m Breaststroke", "course": "L", "division": "Boys HS", "place": 8, "time": 159.52, "swimmerName": "8th place"}, {"id": 1700000158, "label": "Pambansa QTS 2026", "event": "200m Breaststroke", "course": "L", "division": "Girls HS", "place": 8, "time": 175.49, "swimmerName": "8th place"}, {"id": 1700000159, "label": "Pambansa QTS 2026", "event": "200m Backstroke", "course": "L", "division": "Boys HS", "place": 8, "time": 138.07, "swimmerName": "8th place"}, {"id": 1700000160, "label": "Pambansa QTS 2026", "event": "200m Backstroke", "course": "L", "division": "Girls HS", "place": 8, "time": 155.35, "swimmerName": "8th place"}, {"id": 1700000161, "label": "Pambansa QTS 2026", "event": "1500m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 1062.63, "swimmerName": "8th place"}, {"id": 1700000162, "label": "Pambansa QTS 2026", "event": "1500m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 1178.02, "swimmerName": "8th place"}, {"id": 1700000163, "label": "Pambansa QTS 2026", "event": "200m Butterfly", "course": "L", "division": "Boys HS", "place": 8, "time": 134.84, "swimmerName": "8th place"}, {"id": 1700000164, "label": "Pambansa QTS 2026", "event": "200m Butterfly", "course": "L", "division": "Girls HS", "place": 8, "time": 159.76, "swimmerName": "8th place"}, {"id": 1700000165, "label": "Pambansa QTS 2026", "event": "800m Freestyle", "course": "L", "division": "Boys HS", "place": 8, "time": 551.09, "swimmerName": "8th place"}, {"id": 1700000166, "label": "Pambansa QTS 2026", "event": "800m Freestyle", "course": "L", "division": "Girls HS", "place": 8, "time": 610.69, "swimmerName": "8th place"}, {"id": 1700000167, "label": "Pambansa QTS 2026", "event": "400m IM", "course": "L", "division": "Boys HS", "place": 8, "time": 303.09, "swimmerName": "8th place"}, {"id": 1700000168, "label": "Pambansa QTS 2026", "event": "400m IM", "course": "L", "division": "Girls HS", "place": 8, "time": 344.2, "swimmerName": "8th place"}];
   localStorage.setItem('swt2_benchmarks',JSON.stringify(benchmarks));
   localStorage.setItem('swt2_pending',JSON.stringify(pendingEntries));
+  localStorage.setItem('swt2_relays',JSON.stringify(rbRelays));
 }
 let periods     = JSON.parse(localStorage.getItem('swt2_periods')||'[]');
 let editingId   = null;
 let attState    = {};
 let rosterGenderSplit = false;
+
+// Relay builder state — declared before save() to avoid temporal dead zone
+var rbRelays=[];
+var efRelayEntries=[]; // [{id, evNo, name, type, legDist, legs:[{stroke,swimmerId}], savedRelayId}]
+var rbCurrentRelay=null;
+var rbDragSwimmerId=null;
+var rbOverride=false;
+var rbSelectedSwimmerIds=new Set();
 
 function save(){
   localStorage.setItem('swt2_swimmers',JSON.stringify(swimmers));
@@ -737,6 +846,7 @@ const TAB_META={
   'log-race':{label:'Log Race',cat:'meets',icon:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>'},
   meets:{label:'Logged Meets',cat:'meets',icon:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'},
   'entry-form':{label:'Entry Form',cat:'meets',icon:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>'},
+  'relay-builder':{label:'Relay Builder',cat:'meets',icon:'<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'},
   'meet-entries':{label:'Meet Entries',cat:'meets',icon:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>'},
   'pb-chart':{label:'PB Chart',cat:'performance',icon:'<svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'},
   rankings:{label:'Rankings',cat:'performance',icon:'<svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>'},
@@ -745,7 +855,7 @@ const TAB_META={
 const CATEGORIES={
   team:{tabs:['roster','attendance','overview']},
   training:{tabs:['log-training','training-overview','trend']},
-  meets:{tabs:['log-race','meets','entry-form','meet-entries']},
+  meets:{tabs:['log-race','meets','entry-form','relay-builder','meet-entries']},
   performance:{tabs:['pb-chart','rankings','benchmarks']},
 };
 // Remember last visited tab per category
@@ -786,6 +896,8 @@ function showTab(t){
   if(t==='roster')renderRoster();
   if(t==='attendance'){renderAttendanceGrid();renderAttHistory();renderPeriodsUI();}
   if(t==='meet-entries'){renderMeetEntriesTable();populateMeetEventSelect();}
+  if(t==='relay-builder'){rbInit();}
+  if(t==='entry-form'){efRenderRelayList();}
   if(t==='pb-chart'){populatePBSelects();renderPBChart();}
   if(t==='meets')renderMeetsList();
   if(t==='training-overview')renderTrainingOverview();
@@ -1576,7 +1688,7 @@ function renderPBChart(){
 // RANKINGS
 // ===========================================================
 // Resolve the best available date for a race:
-// 1. Use the race's own date if it looks valid
+// 1. Use the race's own date if it looks valid (YYYY-MM-DD, 1990-2099)
 // 2. Fall back to the date stored on the matching meet record
 // 3. Fall back to '' if neither exists
 function resolveRaceDate(r){
@@ -1585,7 +1697,6 @@ function resolveRaceDate(r){
     const mm=parseInt(d.slice(5,7),10),dd=parseInt(d.slice(8,10),10),yyyy=parseInt(d.slice(0,4),10);
     if(mm>=1&&mm<=12&&dd>=1&&dd<=31&&yyyy>=1990&&yyyy<=2099)return d;
   }
-  // Bad or missing date — look up from meets
   if(r.meet){
     const m=meets.find(x=>x.name&&x.name.trim().toLowerCase()===r.meet.trim().toLowerCase());
     if(m&&m.date&&/^\d{4}-\d{2}-\d{2}$/.test(m.date))return m.date;
@@ -2390,7 +2501,7 @@ function renderMeetEntriesTable(){
 }
 function pad(s,n,right=false){s=String(s||'');while(s.length<n)s=right?s+' ':' '+s;return s.slice(0,n);}
 function buildHytekContent(ext){
-  const meetName=document.getElementById('me-meet-name').value.trim()||'Meet';const teamName=document.getElementById('me-team-name').value.trim()||'St. Stephens Manila Aquaknights';const teamCode=document.getElementById('me-team-code').value.trim()||'SSM';const city=document.getElementById('me-city').value.trim()||'Manila';const meetDate=document.getElementById('me-date').value.trim().replace(/-/g,'')||today().replace(/-/g,'');const course=document.getElementById('me-course').value;const courseCode=course==='L'?'L':'S';const now=new Date();const buildDate=`${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}${now.getFullYear()}`;
+  const meetName=document.getElementById('me-meet-name').value.trim()||'Meet';const teamName=document.getElementById('me-team-name').value.trim()||'ILUSTRE PERFORMANCE SWIM CLUB';const teamCode=document.getElementById('me-team-code').value.trim()||'SSM';const city=document.getElementById('me-city').value.trim()||'Manila';const meetDate=document.getElementById('me-date').value.trim().replace(/-/g,'')||today().replace(/-/g,'');const course=document.getElementById('me-course').value;const courseCode=course==='L'?'L':'S';const now=new Date();const buildDate=`${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}${now.getFullYear()}`;
   function strokeCode(ev){const s=ev.replace(/^\d+m\s+/,'');return STROKE_CODES[s]||1;}
   function fmtDate8(d){if(!d)return'        ';d=d.replace(/-/g,'');return d.slice(0,8).padEnd(8,' ');}
   function fmtBday(b){if(!b||b.length<8)return'01011990';return b.slice(0,8);}
@@ -2612,6 +2723,7 @@ function importData(input){
   reader.readAsText(file);
 }
 renderSubTabs('team');
+rbRelays=JSON.parse(localStorage.getItem('swt2_relays')||'[]');
 document.querySelector('.sub-tab[data-tab="roster"]')?.classList.add('active');
 populateEventSelects();
 populateMeetEventSelect();
@@ -2733,6 +2845,121 @@ function efImportEventList(input){
       input.value='';
     }catch(err){
       alert('Failed to read file: '+err.message);
+      input.value='';
+    }
+  };
+  reader.readAsText(input.files[0]);
+}
+
+function efImportHyv(input){
+  if(!input.files.length)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const lines=e.target.result.split('\n').map(l=>l.trim()).filter(Boolean);
+      if(!lines.length){alert('Empty file.');input.value='';return;}
+
+      // ── Parse header line (line 1) ──
+      const header=lines[0].split(';');
+      const meetName=(header[0]||'').trim();
+      const startDate=(header[1]||'').trim(); // MM/DD/YYYY
+      const course=(header[4]||'S').trim().toUpperCase()==='L'?'L':'S';
+
+      // Format date to YYYY-MM-DD if valid
+      let formattedDate='';
+      const dm=startDate.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if(dm)formattedDate=dm[3]+'-'+dm[1].padStart(2,'0')+'-'+dm[2].padStart(2,'0');
+
+      // ── Parse event lines ──
+      // Format: EventCode;Day;Gender(M/F);Type(I/R);MinAge;MaxAge;Distance;Stroke
+      // Stroke codes: 1=FR, 2=BK, 3=BR, 4=FL, 5=Medley(relay)
+      const STROKE={1:'Freestyle',2:'Backstroke',3:'Breaststroke',4:'Butterfly',5:'Medley'};
+      const TRACKER={1:'Freestyle',2:'Backstroke',3:'Breaststroke',4:'Butterfly'};
+      const AGE_LABELS={11:'11',12:'12',13:'13',14:'14',15:'15',16:'16',17:'17',18:'18',19:'19+'};
+
+      const events=[];
+      const relayEvents=[];
+      lines.slice(1).forEach(line=>{
+        const parts=line.split(';');
+        if(parts.length<8)return;
+        const codeRaw=(parts[0]||'').trim();
+        // Event number = numeric prefix of code (e.g. 201 from 201A)
+        const evNoMatch=codeRaw.match(/^(\d+)/);
+        if(!evNoMatch)return;
+        const evNo=parseInt(evNoMatch[1]);
+        const gender=(parts[2]||'').trim(); // M or F
+        const type=(parts[3]||'').trim();   // I=individual, R=relay
+        const minAge=parseInt(parts[4])||0;
+        const maxAge=parseInt(parts[5])||0;
+        const dist=parseInt(parts[6])||0;
+        const strokeCode=parseInt(parts[7])||1;
+        const strokeName=STROKE[strokeCode]||'Freestyle';
+        const trackerStroke=TRACKER[strokeCode]||'';
+        const genderLabel=gender==='M'?'Boys':gender==='F'?'Girls':'';
+        const ageLabel=maxAge===0?'Open':(minAge===maxAge?String(minAge):(minAge+'-'+maxAge));
+
+        if(type==='R'){
+          // Relay: hyv stores total team distance (4 legs), so leg dist = dist/4
+          const legDist=Math.round(dist/4);
+          // Deduplicate relays by event number
+          if(!relayEvents.find(r=>r.no===evNo)){
+            relayEvents.push({no:evNo,name:dist+'m '+strokeName+' Relay '+genderLabel,type:'R',gender,strokeCode,dist,legDist,legsCount:4,minAge,maxAge});
+          }
+        } else {
+          // Individual — deduplicate by event number (age groups share same event no)
+          if(!events.find(ev=>ev.no===evNo)){
+            const trackerEventName=dist+'m '+trackerStroke;
+            const trackerMatch=typeof EVENTS!=='undefined'?EVENTS.find(ev=>ev===trackerEventName):'';
+            // Display name: distance + stroke + gender (omit age — gender filter handles it)
+            const displayName=dist+'m '+strokeName+' '+genderLabel;
+            events.push({no:evNo,name:displayName.trim(),trackerEvent:trackerMatch||''});
+          }
+        }
+      });
+
+      if(!events.length&&!relayEvents.length){alert('No events found in this .hyv file.');input.value='';return;}
+
+      const totalFound=events.length+relayEvents.length;
+      const msg=meetName
+        ?'Load '+events.length+' individual + '+relayEvents.length+' relay events from "'+meetName+'"?'
+        :'Load '+totalFound+' events from this .hyv file?';
+
+      if(efMeetEvents.length&&!confirm(msg+' This will replace the current event list.'))
+        {input.value='';return;}
+      if(!efMeetEvents.length&&!confirm(msg))
+        {input.value='';return;}
+      if(!efMeetEvents.length&&!confirm(msg))
+        {input.value='';return;}
+
+      // Apply
+      efMeetEvents=events;
+
+      // Set meet details if available
+      if(meetName){
+        const mn=document.getElementById('ef-meet-name');
+        if(mn)mn.value=meetName;
+      }
+      if(formattedDate){
+        // Store for reference — not a direct field but useful context
+      }
+      if(course){
+        const cs=document.getElementById('ef-course');
+        if(cs)cs.value=course;
+      }
+
+      renderEfEventList();
+      renderEntryFormTab();
+
+      // Show relay events as info if any found
+      if(relayEvents.length){
+        efAddRelayFromHyv(relayEvents);
+        flash('ef-msg','Loaded '+events.length+' individual events and '+relayEvents.length+' relay event(s) added to Relay Entries.');
+      } else {
+        flash('ef-msg','Loaded '+events.length+' events from .hyv file.');
+      }
+      input.value='';
+    }catch(err){
+      alert('Failed to parse .hyv file: '+err.message);
       input.value='';
     }
   };
@@ -3194,6 +3421,35 @@ function generateEntryFormDOCX(entries,meetName,teamName){
 <w:p><w:pPr><w:spacing w:before="160"/></w:pPr>
   <w:r><w:rPr><w:i/><w:color w:val="555555"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr>
   <w:t>Total entries: ${entries.length} &#x2014; Ages as of Dec 31, 2026</w:t></w:r></w:p>
+${efRelayEntries.length?`
+<w:p><w:pPr><w:pageBreakBefore/><w:spacing w:before="0" w:after="200"/></w:pPr>
+  <w:r><w:rPr><w:b/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t>${esc(meetName)}</w:t></w:r></w:p>
+<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+  <w:r><w:rPr><w:b/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t>OFFICIAL RELAY ENTRY FORM</w:t></w:r></w:p>
+${efRelayEntries.map(re=>{
+  const relayCW=[300,2300,1060,520,640,900,1060,700];
+  const relayGrid=relayCW.map(w=>'<w:gridCol w:w="'+w+'"/>').join('');
+  function relayHdr(t,w){return'<w:tc><w:tcPr><w:tcW w:w="'+w+'" w:type="dxa"/><w:tcBorders><w:top w:val="single" w:sz="4" w:color="auto"/><w:left w:val="single" w:sz="4" w:color="auto"/><w:bottom w:val="single" w:sz="4" w:color="auto"/><w:right w:val="single" w:sz="4" w:color="auto"/></w:tcBorders></w:tcPr><w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="16"/></w:rPr><w:t xml:space="preserve">'+esc(t)+'</w:t></w:r></w:p></w:tc>';}
+  function relayCell(t,w,align){return'<w:tc><w:tcPr><w:tcW w:w="'+w+'" w:type="dxa"/><w:tcBorders><w:top w:val="single" w:sz="4" w:color="auto"/><w:left w:val="single" w:sz="4" w:color="auto"/><w:bottom w:val="single" w:sz="4" w:color="auto"/><w:right w:val="single" w:sz="4" w:color="auto"/></w:tcBorders></w:tcPr><w:p><w:pPr><w:jc w:val="'+(align||'left')+'"/></w:pPr><w:r><w:rPr><w:sz w:val="17"/></w:rPr><w:t xml:space="preserve">'+esc(t)+'</w:t></w:r></w:p></w:tc>';}
+  const legRows=re.legs.map((leg,li)=>{
+    const sw=leg.swimmerId?swimmers.find(s=>s.id===leg.swimmerId):null;
+    const dn=sw?lastFirstName(sw):'';
+    const age=sw?String(rbAge(sw)):'';
+    let bday='';if(sw&&sw.birthday){const b=sw.birthday;if(b.includes('-')){const p=b.split('-');bday=p[1]+'/'+p[2]+'/'+p[0];}else if(b.length===8)bday=b.slice(0,2)+'/'+b.slice(2,4)+'/'+b.slice(4,8);}
+    const gender=sw?(sw.gender==='M'?'M':'F'):'';
+    return'<w:tr><w:trPr><w:trHeight w:val="380" w:hRule="atLeast"/></w:trPr>'+
+      relayCell(String(li+1),relayCW[0],'center')+relayCell(dn,relayCW[1])+relayCell(bday,relayCW[2],'center')+
+      relayCell(age,relayCW[3],'center')+relayCell(gender,relayCW[4],'center')+
+      relayCell(leg.stroke,relayCW[5])+relayCell('',relayCW[6])+relayCell('',relayCW[7])+'</w:tr>';
+  }).join('');
+  return'<w:p><w:pPr><w:spacing w:before="160" w:after="80"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">Event '+esc(re.evNo)+' — '+esc(re.name)+(re.legDist?' ('+re.legs.length+'×'+re.legDist+'m)':'')+'</w:t></w:r></w:p>'+
+    '<w:tbl><w:tblPr><w:tblW w:w="7480" w:type="dxa"/><w:tblLayout w:type="fixed"/></w:tblPr>'+
+    '<w:tblGrid>'+relayGrid+'</w:tblGrid>'+
+    '<w:tr><w:trPr><w:trHeight w:val="400" w:hRule="atLeast"/></w:trPr>'+
+    relayHdr('Leg',relayCW[0])+relayHdr('Name (Family, First)',relayCW[1])+relayHdr('Birthday',relayCW[2])+relayHdr('Age',relayCW[3])+relayHdr('M/F',relayCW[4])+relayHdr('Stroke',relayCW[5])+relayHdr('Seed Time',relayCW[6])+relayHdr('Remarks',relayCW[7])+'</w:tr>'+
+    legRows+'</w:tbl><w:p><w:pPr><w:spacing w:after="200"/></w:pPr><w:r><w:t></w:t></w:r></w:p>';
+}).join('')}
+`:''}
 <w:sectPr><w:pgSz w:w="12240" w:h="15840"/>
   <w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720"/></w:sectPr>
 </w:body></w:document>`;
@@ -3232,6 +3488,632 @@ function generateEntryFormDOCX(entries,meetName,teamName){
     a.click();
     flash('ef-msg','Downloaded as .docx. Open in Word or Google Docs, fill in coach details, then print.');
   });
+}
+
+// ===========================================================
+// ENTRY FORM — RELAY ENTRIES
+// ===========================================================
+
+const EF_STROKE_OPTIONS=['Backstroke','Breaststroke','Butterfly','Freestyle'];
+
+function efRenderRelayList(){
+  const wrap=document.getElementById('ef-relay-list');if(!wrap)return;
+  if(!efRelayEntries.length){
+    wrap.innerHTML='<div class="empty" style="padding:8px 0">No relay events added yet.</div>';return;
+  }
+  wrap.innerHTML=efRelayEntries.map((re,ri)=>{
+    const isExpanded=efExpandedSwimmers.has('relay_'+re.id);
+    const assignedCount=re.legs.filter(l=>l.swimmerId).length;
+    const summary=assignedCount+'/'+re.legs.length+' swimmers assigned';
+    return'<div style="background:#1a1d27;border:1px solid #2d3348;border-radius:8px;margin-bottom:6px;overflow:hidden">'+
+      // Header
+      '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer" onclick="efToggleRelayExpand(\''+re.id+'\')">'+
+        '<span style="font-size:12px;font-weight:700;color:#e2e8f0;flex:1">'+
+          '<span style="color:#8892a4;font-family:monospace;margin-right:6px">'+re.evNo+'</span>'+esc(re.name)+
+        '</span>'+
+        '<span style="font-size:10px;color:#6b7a8d">'+summary+'</span>'+
+        '<button class="btn xs danger" onclick="efRemoveRelay('+ri+');event.stopPropagation()" style="font-size:10px">✕</button>'+
+        '<span style="color:#8892a4;font-size:12px;margin-left:2px">'+(isExpanded?'▲':'▼')+'</span>'+
+      '</div>'+
+      (isExpanded?
+        '<div style="border-top:1px solid #2d3348;padding:10px 12px">'+
+          // Link to saved relay
+          '<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">'+
+            '<label style="font-size:11px;color:#8892a4">Import from saved relay:</label>'+
+            '<select id="ef-relay-saved-'+re.id+'" style="height:26px;font-size:11px;flex:1;min-width:160px">'+
+              '<option value="">— pick a saved relay plan —</option>'+
+              rbRelays.map(r=>'<option value="'+r.id+'">'+esc(r.name)+'</option>').join('')+
+            '</select>'+
+            '<button class="btn xs" onclick="efLinkRelayPlan(\''+re.id+'\')">Apply</button>'+
+            '<button class="btn xs" onclick="showTab(\'relay-builder\')" title="Go to Relay Builder">Open Relay Builder ↗</button>'+
+          '</div>'+
+          // Legs
+          '<div style="display:flex;flex-direction:column;gap:5px">'+
+            re.legs.map((leg,li)=>{
+              const sw=leg.swimmerId?swimmers.find(s=>s.id===leg.swimmerId):null;
+              return'<div style="display:flex;align-items:center;gap:6px;background:#252a38;border-radius:6px;padding:5px 8px">'+
+                '<span style="font-size:10px;color:#8892a4;min-width:20px">'+(li+1)+'</span>'+
+                '<select onchange="efUpdateRelayLegStroke(\''+re.id+'\','+li+',this.value)" style="height:24px;font-size:10px;width:100px;background:#1a1d27">'+
+                  EF_STROKE_OPTIONS.map(s=>'<option'+(s===leg.stroke?' selected':'')+'>'+s+'</option>').join('')+
+                '</select>'+
+                '<select onchange="efUpdateRelayLegSwimmer(\''+re.id+'\','+li+',this.value)" style="height:24px;font-size:11px;flex:1;background:#1a1d27">'+
+                  '<option value="">— swimmer —</option>'+
+                  sorted(swimmers).map(s=>'<option value="'+s.id+'"'+(leg.swimmerId===s.id?' selected':'')+'>'+esc(lastFirstName(s))+'</option>').join('')+
+                '</select>'+
+                (sw?'<span style="font-size:10px;color:#8892a4">'+rbAge(sw)+'y</span>':'')+
+              '</div>';
+            }).join('')+
+          '</div>'+
+          // Add/remove legs
+          '<div style="display:flex;gap:6px;margin-top:8px">'+
+            '<button class="btn xs" onclick="efAddRelayLeg(\''+re.id+'\')">+ Leg</button>'+
+            (re.legs.length>1?'<button class="btn xs danger" onclick="efRemoveRelayLeg(\''+re.id+'\')">− Leg</button>':'')+
+          '</div>'+
+        '</div>'
+      :'')+
+    '</div>';
+  }).join('');
+}
+
+function efToggleRelayExpand(id){
+  const key='relay_'+id;
+  if(efExpandedSwimmers.has(key))efExpandedSwimmers.delete(key);
+  else efExpandedSwimmers.add(key);
+  efRenderRelayList();
+}
+
+function efAddRelayManual(){
+  const id=Date.now();
+  efRelayEntries.push({
+    id,evNo:'',name:'New Relay',type:'medley',legDist:25,
+    legs:[
+      {stroke:'Backstroke',swimmerId:null},
+      {stroke:'Breaststroke',swimmerId:null},
+      {stroke:'Butterfly',swimmerId:null},
+      {stroke:'Freestyle',swimmerId:null},
+    ]
+  });
+  efExpandedSwimmers.add('relay_'+id);
+  efRenderRelayList();
+}
+
+function efRemoveRelay(ri){
+  if(!confirm('Remove this relay event?'))return;
+  efRelayEntries.splice(ri,1);
+  efRenderRelayList();
+}
+
+function efAddRelayLeg(id){
+  const re=efRelayEntries.find(r=>r.id===id);if(!re)return;
+  re.legs.push({stroke:'Freestyle',swimmerId:null});
+  efRenderRelayList();
+}
+
+function efRemoveRelayLeg(id){
+  const re=efRelayEntries.find(r=>r.id===id);if(!re||re.legs.length<=1)return;
+  re.legs.pop();
+  efRenderRelayList();
+}
+
+function efUpdateRelayLegStroke(id,li,stroke){
+  const re=efRelayEntries.find(r=>r.id===id);if(!re)return;
+  re.legs[li].stroke=stroke;
+}
+
+function efUpdateRelayLegSwimmer(id,li,val){
+  const re=efRelayEntries.find(r=>r.id===id);if(!re)return;
+  re.legs[li].swimmerId=val?parseInt(val):null;
+}
+
+function efLinkRelayPlan(id){
+  const sel=document.getElementById('ef-relay-saved-'+id);if(!sel||!sel.value)return;
+  const plan=rbRelays.find(r=>r.id===parseInt(sel.value));if(!plan)return;
+  const re=efRelayEntries.find(r=>r.id===id);if(!re)return;
+  // Take first team from the saved plan
+  const team=plan.teams&&plan.teams[0];if(!team)return;
+  re.name=plan.name;
+  re.legs=team.legs.map(l=>({
+    stroke:{FR:'Freestyle',BK:'Backstroke',BR:'Breaststroke',FL:'Butterfly'}[l.stroke]||l.stroke||'Freestyle',
+    swimmerId:l.swimmerId||null
+  }));
+  re.savedRelayId=plan.id;
+  efRenderRelayList();
+}
+
+// Called from HYV import — adds detected relay events
+function efAddRelayFromHyv(relayEventsArr){
+  relayEventsArr.forEach(r=>{
+    if(efRelayEntries.find(e=>e.evNo===String(r.no)))return; // don't dupe
+    const legs=[];
+    if(r.strokeCode===5){// medley
+      ['Backstroke','Breaststroke','Butterfly','Freestyle'].forEach(s=>legs.push({stroke:s,swimmerId:null}));
+    } else {
+      for(let i=0;i<4;i++)legs.push({stroke:'Freestyle',swimmerId:null});
+    }
+    efRelayEntries.push({id:Date.now()+Math.random(),evNo:String(r.no),name:r.name,type:r.strokeCode===5?'medley':'free',legDist:r.legDist,legs});
+  });
+  efRenderRelayList();
+}
+
+
+// ===========================================================
+// RELAY BUILDER — Multi-team, multi-leg, balanced
+// ===========================================================
+
+function rbSave(){localStorage.setItem('swt2_relays',JSON.stringify(rbRelays));}
+
+function rbInit(){
+  rbUpdateLegTotal();
+  rbRenderSaved();
+  ['rb-fr','rb-bk','rb-br','rb-fl'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.oninput=rbUpdateLegTotal;
+  });
+}
+
+function rbUpdateLegTotal(){
+  const fr=parseInt(document.getElementById('rb-fr')?.value)||0;
+  const bk=parseInt(document.getElementById('rb-bk')?.value)||0;
+  const br=parseInt(document.getElementById('rb-br')?.value)||0;
+  const fl=parseInt(document.getElementById('rb-fl')?.value)||0;
+  const el=document.getElementById('rb-total-legs');
+  if(el)el.textContent=fr+bk+br+fl;
+}
+
+// ── Bracket management ──
+function rbGetBrackets(){
+  return [...document.querySelectorAll('#rb-brackets-wrap .rb-bracket-pill')].map(el=>({
+    min:parseInt(el.dataset.min),max:parseInt(el.dataset.max)
+  })).sort((a,b)=>a.min-b.min);
+}
+function rbDefaultBrackets(){
+  const wrap=document.getElementById('rb-brackets-wrap');
+  wrap.querySelectorAll('.rb-bracket-pill').forEach(el=>el.remove());
+  [[11,12],[13,14],[15,16],[17,99]].forEach(([min,max])=>rbAddBracketPill(min,max));
+}
+function rbAddBracket(){
+  const min=parseInt(document.getElementById('rb-new-min').value);
+  const max=parseInt(document.getElementById('rb-new-max').value);
+  if(isNaN(min)||isNaN(max)||min>max){alert('Enter valid min and max ages (use 99 for open).');return;}
+  rbAddBracketPill(min,max);
+  document.getElementById('rb-new-min').value='';
+  document.getElementById('rb-new-max').value='';
+}
+function rbAddBracketPill(min,max){
+  const wrap=document.getElementById('rb-brackets-wrap');
+  const addRow=wrap.querySelector('div:last-child');
+  const pill=document.createElement('div');
+  pill.className='rb-bracket-pill';
+  pill.dataset.min=min;pill.dataset.max=max;
+  pill.style.cssText='display:inline-flex;align-items:center;gap:4px;background:#252a38;border:1px solid #3d4460;border-radius:6px;padding:3px 8px;font-size:11px';
+  pill.innerHTML='<span>'+(max>=99?min+'+':min+'–'+max)+'</span><span style="color:#fca5a5;cursor:pointer" onclick="this.closest(\'.rb-bracket-pill\').remove()">✕</span>';
+  wrap.insertBefore(pill,addRow);
+}
+
+// ── Age / scoring helpers ──
+function rbAge(sw){
+  let bday=sw.birthday||'';let mm='',dd='',yyyy='';
+  if(bday.includes('-')){const p=bday.split('-');yyyy=p[0];mm=p[1];dd=p[2];}
+  else if(bday.length===8){mm=bday.slice(0,2);dd=bday.slice(2,4);yyyy=bday.slice(4,8);}
+  if(mm&&dd&&yyyy){
+    let a=2026-parseInt(yyyy,10);
+    if(11<parseInt(mm,10)-1||(11===parseInt(mm,10)-1&&31<parseInt(dd,10)))a--;
+    return a;
+  }
+  return sw.age||0;
+}
+function rbBracketOf(age,brackets){
+  for(let i=0;i<brackets.length;i++)if(age>=brackets[i].min&&age<=brackets[i].max)return i;
+  return -1;
+}
+
+// Stroke event name for 50m PB lookup
+const RB_STROKE_EVENTS={FR:'50m Freestyle',BK:'50m Backstroke',BR:'50m Breaststroke',FL:'50m Butterfly'};
+const RB_FALLBACK_SCALE={FR:1,BK:1.08,BR:1.18,FL:1.12}; // rough scale from FR if no PB
+
+function rbGetScore(sw,stroke){
+  const ev=RB_STROKE_EVENTS[stroke];
+  if(!ev)return null;
+  const rs=races.filter(r=>r.swimmerId===sw.id&&r.event===ev&&r.finalTime);
+  if(rs.length)return Math.min(...rs.map(r=>r.finalTime));
+  // Fallback: estimate from 50FR if available
+  const frRaces=races.filter(r=>r.swimmerId===sw.id&&r.event==='50m Freestyle'&&r.finalTime);
+  if(frRaces.length){
+    const frBest=Math.min(...frRaces.map(r=>r.finalTime));
+    return frBest*RB_FALLBACK_SCALE[stroke];
+  }
+  return null;
+}
+
+// ── Step 2: swimmer pool ──
+function rbOpenPool(){
+  const name=document.getElementById('rb-name').value.trim();
+  if(!name){alert('Enter a relay name first.');return;}
+  document.getElementById('rb-pool-card').style.display='';
+  rbRenderPoolList();
+}
+
+function rbRenderPoolList(){
+  const gender=document.getElementById('rb-gender').value;
+  const pool=sorted(swimmers).filter(s=>!gender||(s.gender||'M')===gender);
+  const wrap=document.getElementById('rb-swimmer-pool');
+  const brackets=rbGetBrackets();
+  wrap.innerHTML=pool.map(s=>{
+    const age=rbAge(s);
+    const bi=brackets.length?rbBracketOf(age,brackets):-1;
+    const bk=bi>=0?brackets[bi]:null;
+    const bkLabel=bk?(bk.max>=99?bk.min+'+':bk.min+'–'+bk.max):'—';
+    const sel=rbSelectedSwimmerIds.has(s.id);
+    // Get stroke scores
+    const scores=['FR','BK','BR','FL'].map(str=>{
+      const t=rbGetScore(s,str);
+      return t?str+':'+formatTime(t):null;
+    }).filter(Boolean).join(' · ');
+    return'<div style="display:flex;align-items:center;gap:7px;background:'+(sel?'#1e3a5f':'#252a38')+';border:1px solid '+(sel?'#3b82f6':'#3d4460')+';border-radius:6px;padding:6px 10px;cursor:pointer" onclick="rbTogglePoolSwimmer('+s.id+',this)">'+
+      '<input type="checkbox" '+(sel?'checked':'')+' style="width:auto;height:auto;flex-shrink:0" onclick="event.stopPropagation()">'+
+      '<span class="badge '+(s.gender==='M'?'bb':'br')+'" style="font-size:9px">'+(s.gender==='M'?'M':'F')+'</span>'+
+      '<span style="font-size:12px;font-weight:600;flex:1;color:#e2e8f0">'+esc(lastFirstName(s))+'</span>'+
+      '<span style="font-size:10px;color:#8892a4">'+age+'y'+(bkLabel!=='—'?' ['+bkLabel+']':'')+'</span>'+
+      '<span style="font-size:10px;color:#6b7a8d;font-family:monospace">'+scores+'</span>'+
+    '</div>';
+  }).join('');
+  const countEl=document.getElementById('rb-pool-selected');
+  if(countEl)countEl.textContent='('+rbSelectedSwimmerIds.size+' selected)';
+}
+function rbTogglePoolSwimmer(sid,row){
+  if(rbSelectedSwimmerIds.has(sid))rbSelectedSwimmerIds.delete(sid);
+  else rbSelectedSwimmerIds.add(sid);
+  rbRenderPoolList();
+}
+function rbSelectAllPool(){
+  const gender=document.getElementById('rb-gender').value;
+  swimmers.filter(s=>!gender||(s.gender||'M')===gender).forEach(s=>rbSelectedSwimmerIds.add(s.id));
+  rbRenderPoolList();
+}
+function rbClearPool(){rbSelectedSwimmerIds.clear();rbRenderPoolList();}
+
+// ── Build stroke distribution ──
+function rbGetStrokeDist(){
+  const fr=parseInt(document.getElementById('rb-fr')?.value)||0;
+  const bk=parseInt(document.getElementById('rb-bk')?.value)||0;
+  const br=parseInt(document.getElementById('rb-br')?.value)||0;
+  const fl=parseInt(document.getElementById('rb-fl')?.value)||0;
+  const legs=[];
+  for(let i=0;i<fr;i++)legs.push('FR');
+  for(let i=0;i<bk;i++)legs.push('BK');
+  for(let i=0;i<br;i++)legs.push('BR');
+  for(let i=0;i<fl;i++)legs.push('FL');
+  return legs;
+}
+
+// ── Auto-suggest with team balancing ──
+function rbAutoSuggest(){
+  const pool=[...rbSelectedSwimmerIds].map(id=>swimmers.find(s=>s.id===id)).filter(Boolean);
+  if(!pool.length){alert('Select swimmers first.');return;}
+  const strokeLegs=rbGetStrokeDist();
+  const numTeams=parseInt(document.getElementById('rb-num-teams').value)||2;
+  const balance=document.querySelector('input[name="rb-balance"]:checked')?.value||'competitive';
+  const dist=parseInt(document.getElementById('rb-dist').value)||50;
+  const brackets=rbGetBrackets();
+
+  // 1. Assign each swimmer their best stroke (greedy, respecting distribution counts)
+  const strokeCounts={FR:0,BK:0,BR:0,FL:0};
+  const maxCounts={};
+  strokeLegs.forEach(s=>maxCounts[s]=(maxCounts[s]||0)+1);
+  // Sort swimmers by "specialization" — difference between best and second-best stroke
+  const swimmerScores=pool.map(sw=>{
+    const scores={};
+    ['FR','BK','BR','FL'].forEach(str=>{scores[str]=rbGetScore(sw,str)||999;});
+    const sorted2=Object.entries(scores).sort((a,b)=>a[1]-b[1]);
+    const gap=sorted2.length>1?sorted2[1][1]-sorted2[0][1]:0;
+    return{sw,scores,bestStroke:sorted2[0][0],gap};
+  }).sort((a,b)=>b.gap-a.gap); // most specialized first
+
+  const assignments=new Map(); // swimmerId → {stroke, time}
+  const strokeFilled={FR:0,BK:0,BR:0,FL:0};
+  swimmerScores.forEach(({sw,scores})=>{
+    const sorted2=Object.entries(scores).sort((a,b)=>a[1]-b[1]);
+    let assigned=null;
+    for(const [str,time] of sorted2){
+      if((strokeFilled[str]||0)<(maxCounts[str]||0)){
+        assigned={stroke:str,time};strokeFilled[str]=(strokeFilled[str]||0)+1;break;
+      }
+    }
+    if(!assigned){
+      // Overflow — assign to least filled stroke that has capacity
+      const overflow=Object.entries(maxCounts).filter(([s,m])=>(strokeFilled[s]||0)<m);
+      if(overflow.length){
+        const [str]=overflow.sort((a,b)=>(strokeFilled[a[0]]||0)-(strokeFilled[b[0]]||0))[0];
+        assigned={stroke:str,time:scores[str]||999};strokeFilled[str]=(strokeFilled[str]||0)+1;
+      } else {
+        assigned={stroke:'FR',time:scores['FR']||999};
+      }
+    }
+    assignments.set(sw.id,assigned);
+  });
+
+  // 2. Split into numTeams to balance
+  const swimmerList=pool.map(sw=>({sw,stroke:assignments.get(sw.id)?.stroke||'FR',time:assignments.get(sw.id)?.time||999}));
+  swimmerList.sort((a,b)=>a.time-b.time); // fastest first
+
+  const teams=Array.from({length:numTeams},(_,i)=>({name:'Team '+(String.fromCharCode(65+i)),legs:[],totalTime:0}));
+
+  if(balance==='snake'){
+    // Snake draft: 1st to team1, 2nd to team2, ..., Nth to teamN, (N+1)th to teamN, ...
+    let dir=1,teamIdx=0;
+    swimmerList.forEach((entry,i)=>{
+      teams[teamIdx].legs.push({stroke:entry.stroke,swimmerId:entry.sw.id,time:entry.time});
+      teams[teamIdx].totalTime+=entry.time;
+      teamIdx+=dir;
+      if(teamIdx>=numTeams){teamIdx=numTeams-1;dir=-1;}
+      else if(teamIdx<0){teamIdx=0;dir=1;}
+    });
+  } else {
+    // Competitive: greedy assign each swimmer to the team with lowest total time
+    swimmerList.forEach(entry=>{
+      const target=teams.reduce((mn,t)=>t.totalTime<mn.totalTime?t:mn,teams[0]);
+      target.legs.push({stroke:entry.stroke,swimmerId:entry.sw.id,time:entry.time});
+      target.totalTime+=entry.time;
+    });
+  }
+
+  rbCurrentRelay={
+    name:document.getElementById('rb-name').value.trim(),
+    gender:document.getElementById('rb-gender').value,
+    dist,strokeDist:maxCounts,brackets,numTeams,balance,
+    teams:teams.map(t=>({name:t.name,legs:t.legs,totalTime:t.totalTime}))
+  };
+  rbOverride=false;
+  rbRenderWorkspace();
+}
+
+function rbBuildManual(){
+  const numTeams=parseInt(document.getElementById('rb-num-teams').value)||2;
+  const strokeLegs=rbGetStrokeDist();
+  const dist=parseInt(document.getElementById('rb-dist').value)||50;
+  const brackets=rbGetBrackets();
+  const pool=[...rbSelectedSwimmerIds].map(id=>swimmers.find(s=>s.id===id)).filter(Boolean);
+  // Distribute pool evenly across teams with empty legs
+  const perTeam=Math.ceil(pool.length/numTeams);
+  const maxCounts={};
+  strokeLegs.forEach(s=>maxCounts[s]=(maxCounts[s]||0)+1);
+  const teams=Array.from({length:numTeams},(_,i)=>{
+    const teamSwimmers=pool.slice(i*perTeam,(i+1)*perTeam);
+    return{name:'Team '+(String.fromCharCode(65+i)),legs:teamSwimmers.map(sw=>({stroke:'FR',swimmerId:sw.id,time:null}))};
+  });
+  rbCurrentRelay={name:document.getElementById('rb-name').value.trim(),gender:document.getElementById('rb-gender').value,dist,strokeDist:maxCounts,brackets,numTeams,balance:'manual',teams};
+  rbOverride=false;
+  rbRenderWorkspace();
+}
+
+// ── Stair-step validation ──
+function rbValidate(legs,brackets){
+  if(!brackets.length||rbOverride)return[];
+  const errors=[];
+  const assigned=legs.map(l=>l.swimmerId?swimmers.find(s=>s.id===l.swimmerId):null);
+  const ages=assigned.map(s=>s?rbAge(s):null);
+  const bis=ages.map(a=>a!=null?rbBracketOf(a,brackets):-1);
+  brackets.forEach((b,i)=>{
+    let countAtOrAbove=0;
+    bis.forEach(bi=>{if(bi>=i)countAtOrAbove++;});
+    const slotsAvail=brackets.length-i;
+    if(countAtOrAbove>slotsAvail){
+      const lbl=b.max>=99?b.min+'+':b.min+'–'+b.max;
+      errors.push(`Too many swimmers aged ${lbl}+ (${countAtOrAbove}, max ${slotsAvail})`);
+    }
+  });
+  return errors;
+}
+
+// ── Workspace rendering ──
+function rbRenderWorkspace(){
+  if(!rbCurrentRelay)return;
+  document.getElementById('rb-workspace').style.display='';
+  document.getElementById('rb-workspace-title').textContent=rbCurrentRelay.name;
+  const wrap=document.getElementById('rb-teams-wrap');
+  const r=rbCurrentRelay;
+  wrap.innerHTML=r.teams.map((team,ti)=>{
+    const totalTime=team.legs.reduce((s,l)=>s+(l.time||0),0);
+    const errors=rbValidate(team.legs,r.brackets);
+    const valid=!errors.length||rbOverride;
+    return'<div style="background:#1a1d27;border:1px solid '+(valid?'#2d3348':'#7f1d1d')+';border-radius:10px;padding:12px">'+
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">'+
+        '<input type="text" value="'+esc(team.name)+'" onchange="rbCurrentRelay.teams['+ti+'].name=this.value" style="background:transparent;border:none;border-bottom:1px solid #3d4460;color:#e2e8f0;font-size:13px;font-weight:700;width:100px;padding:0 2px">'+
+        (totalTime?'<span style="font-size:10px;color:#8892a4;font-family:monospace">~'+formatTime(totalTime)+'</span>':'')+
+        (valid?'<span style="font-size:10px;background:#064e3b;color:#6ee7b7;padding:1px 6px;border-radius:100px;margin-left:auto">✓</span>':
+               '<span style="font-size:10px;background:#450a0a;color:#fca5a5;padding:1px 6px;border-radius:100px;margin-left:auto" title="'+errors.join('; ')+'">⚠</span>')+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;gap:4px">'+
+        team.legs.map((leg,li)=>{
+          const sw=leg.swimmerId?swimmers.find(s=>s.id===leg.swimmerId):null;
+          const age=sw?rbAge(sw):null;
+          const strokeLabel=RB_STROKE_EVENTS[leg.stroke]||leg.stroke;
+          return'<div style="display:flex;align-items:center;gap:6px;background:#252a38;border-radius:6px;padding:5px 8px;'+
+            'cursor:grab" draggable="true" '+
+            'ondragstart="rbDragSwimmerId={ti:'+ti+',li:'+li+'};this.style.opacity=\'0.4\'" '+
+            'ondragend="this.style.opacity=\'1\'" '+
+            'ondragover="event.preventDefault();this.style.background=\'#2d3348\'" '+
+            'ondragleave="this.style.background=\'#252a38\'" '+
+            'ondrop="rbDropLeg(event,'+ti+','+li+')" >'+
+            '<span style="font-size:10px;color:#8892a4;min-width:16px">'+(li+1)+'</span>'+
+            '<select onchange="rbCurrentRelay.teams['+ti+'].legs['+li+'].stroke=this.value;rbRenderWorkspace()" style="height:22px;font-size:10px;width:auto;background:#1a1d27;border:1px solid #3d4460;color:#8892a4">'+
+              ['FR','BK','BR','FL'].map(s=>'<option value="'+s+'"'+(leg.stroke===s?' selected':'')+'>'+s+'</option>').join('')+
+            '</select>'+
+            '<span style="font-size:11px;font-weight:600;flex:1;color:#e2e8f0">'+
+              (sw?esc(lastFirstName(sw)):'<span style="color:#4b5563;font-style:italic">empty</span>')+
+            '</span>'+
+            (age!==null?'<span style="font-size:10px;color:#8892a4">'+age+'y</span>':'')+
+            (leg.time?'<span style="font-size:10px;color:#6b7a8d;font-family:monospace">'+formatTime(leg.time)+'</span>':'')+
+            '<button class="btn xs danger" onclick="rbRemoveLeg('+ti+','+li+')" style="padding:0 4px;height:20px">✕</button>'+
+          '</div>';
+        }).join('')+
+      '</div>'+
+      // Add swimmer from pool buttons
+      '<div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap">'+
+        '<button class="btn xs" onclick="rbShowAddToTeam('+ti+')" style="font-size:10px">+ Add swimmer</button>'+
+      '</div>'+
+      '<div id="rb-add-pool-'+ti+'" style="display:none;margin-top:6px;max-height:150px;overflow-y:auto;border:1px solid #2d3348;border-radius:6px;padding:4px">'+
+        pool.filter(sw=>!r.teams.some(t=>t.legs.some(l=>l.swimmerId===sw.id))).map(sw=>
+          '<div style="font-size:11px;padding:3px 6px;cursor:pointer;border-radius:4px;color:#e2e8f0" '+
+          'onmouseover="this.style.background=\'#2d3348\'" onmouseout="this.style.background=\'\'" '+
+          'onclick="rbAddSwimmerToTeam('+ti+','+sw.id+')">'+esc(lastFirstName(sw))+'</div>'
+        ).join('')+
+      '</div>'+
+    '</div>';
+
+    function pool(){return[...rbSelectedSwimmerIds].map(id=>swimmers.find(s=>s.id===id)).filter(Boolean);}
+  }).join('');
+
+  // Validation summary
+  const allErrors=r.teams.flatMap(t=>rbValidate(t.legs,r.brackets));
+  const badge=document.getElementById('rb-validation-badge');
+  if(badge){
+    if(!r.brackets.length||rbOverride)badge.innerHTML='';
+    else if(!allErrors.length)badge.innerHTML='<span style="background:#064e3b;color:#6ee7b7;padding:2px 8px;border-radius:100px;font-size:10px">✓ All teams valid</span>';
+    else badge.innerHTML='<span style="background:#450a0a;color:#fca5a5;padding:2px 8px;border-radius:100px;font-size:10px">⚠ Stair-step violations</span>';
+  }
+}
+
+function rbDropLeg(event,ti,li){
+  event.preventDefault();event.currentTarget.style.background='#252a38';
+  if(!rbDragSwimmerId)return;
+  const {ti:fromTi,li:fromLi}=rbDragSwimmerId;
+  if(fromTi===ti&&fromLi===li){rbDragSwimmerId=null;return;}
+  // Swap legs
+  const temp={...rbCurrentRelay.teams[ti].legs[li]};
+  rbCurrentRelay.teams[ti].legs[li]={...rbCurrentRelay.teams[fromTi].legs[fromLi]};
+  rbCurrentRelay.teams[fromTi].legs[fromLi]=temp;
+  rbDragSwimmerId=null;
+  rbRenderWorkspace();
+}
+
+function rbRemoveLeg(ti,li){
+  rbCurrentRelay.teams[ti].legs.splice(li,1);
+  rbRenderWorkspace();
+}
+
+function rbShowAddToTeam(ti){
+  const wrap=document.getElementById('rb-add-pool-'+ti);
+  if(wrap)wrap.style.display=wrap.style.display==='none'?'':'none';
+}
+
+function rbAddSwimmerToTeam(ti,swId){
+  const sw=swimmers.find(s=>s.id===swId);if(!sw)return;
+  const time=rbGetScore(sw,'FR');
+  rbCurrentRelay.teams[ti].legs.push({stroke:'FR',swimmerId:swId,time});
+  const wrap=document.getElementById('rb-add-pool-'+ti);
+  if(wrap)wrap.style.display='none';
+  rbRenderWorkspace();
+}
+
+function rbOverrideToggle(){
+  rbOverride=!rbOverride;
+  const btn=document.getElementById('rb-override-btn');
+  if(btn){btn.style.background=rbOverride?'#92400e':'';btn.style.color=rbOverride?'#fde68a':'';}
+  rbRenderWorkspace();
+}
+
+// ── Save & export ──
+function rbSaveAndExport(){
+  if(!rbCurrentRelay)return;
+  rbRelays.push({id:Date.now(),...rbCurrentRelay,savedAt:new Date().toISOString()});
+  rbSave();rbRenderSaved();
+  rbExportDocx();
+}
+
+function rbExportDocx(){
+  const r=rbCurrentRelay;if(!r)return;
+  const Z=new JSZip();
+  function e2(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function cell(txt,w,opts={}){
+    const align=opts.align||'left';const bold=opts.bold?'<w:b/>':'';const sz=opts.sz||18;
+    return'<w:tc><w:tcPr><w:tcW w:w="'+w+'" w:type="dxa"/>'+
+      '<w:tcBorders><w:top w:val="single" w:sz="4" w:color="000000"/><w:left w:val="single" w:sz="4" w:color="000000"/><w:bottom w:val="single" w:sz="4" w:color="000000"/><w:right w:val="single" w:sz="4" w:color="000000"/></w:tcBorders>'+
+      '<w:tcMar><w:top w:w="60" w:type="dxa"/><w:left w:w="80" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tcMar>'+
+      '</w:tcPr><w:p><w:pPr><w:jc w:val="'+align+'"/></w:pPr><w:r><w:rPr>'+bold+'<w:sz w:val="'+sz+'"/><w:szCs w:val="'+sz+'"/></w:rPr><w:t xml:space="preserve">'+e2(txt)+'</w:t></w:r></w:p></w:tc>';
+  }
+  function hdr(txt,w){return cell(txt,w,{bold:true,align:'center',sz:17});}
+  function row(cells,height=360){return'<w:tr><w:trPr><w:trHeight w:val="'+height+'" w:hRule="atLeast"/></w:trPr>'+cells+'</w:tr>';}
+  function para(txt,opts={}){return'<w:p><w:pPr>'+(opts.center?'<w:jc w:val="center"/>':'')+(opts.after?'<w:spacing w:after="'+opts.after+'"/>':"")+'</w:pPr><w:r><w:rPr>'+(opts.bold?'<w:b/>':'')+'<w:sz w:val="'+(opts.sz||20)+'"/><w:szCs w:val="'+(opts.sz||20)+'"/></w:rPr><w:t xml:space="preserve">'+e2(txt)+'</w:t></w:r></w:p>';}
+
+  const CW=[400,2200,900,500,640,800,900];
+  const totalW=CW.reduce((a,b)=>a+b,0);
+
+  const teamTables=r.teams.map(team=>{
+    const rows=team.legs.map((leg,i)=>{
+      const sw=leg.swimmerId?swimmers.find(s=>s.id===leg.swimmerId):null;
+      const dn=sw?lastFirstName(sw):'—';
+      const age=sw?rbAge(sw):'';
+      let bday='';
+      if(sw&&sw.birthday){const b=sw.birthday;if(b.includes('-')){const p=b.split('-');bday=p[1]+'/'+p[2]+'/'+p[0];}else if(b.length===8)bday=b.slice(0,2)+'/'+b.slice(2,4)+'/'+b.slice(4,8);}
+      const strokeFull={FR:'Freestyle',BK:'Backstroke',BR:'Breaststroke',FL:'Butterfly'}[leg.stroke]||leg.stroke;
+      return row(cell(i+1,CW[0],{align:'center'})+cell(dn,CW[1])+cell(bday,CW[2],{align:'center'})+cell(age,CW[3],{align:'center'})+cell(sw?(sw.gender==='M'?'M':'F'):'',CW[4],{align:'center'})+cell(strokeFull,CW[5])+cell('',CW[6]));
+    }).join('');
+    const total=team.legs.reduce((s,l)=>s+(l.time||0),0);
+    return para(team.name+' — '+team.legs.length+' swimmers'+(total?' · est. '+formatTime(total):' · est. time TBD'),{bold:true,sz:20,after:100})+
+      '<w:tbl><w:tblPr><w:tblW w:w="'+totalW+'" w:type="dxa"/><w:tblLayout w:type="fixed"/></w:tblPr>'+
+      '<w:tblGrid>'+CW.map(w=>'<w:gridCol w:w="'+w+'"/>').join('')+'</w:tblGrid>'+
+      row(hdr('#',CW[0])+hdr('Name (Family, First)',CW[1])+hdr('Birthday',CW[2])+hdr('Age',CW[3])+hdr('M/F',CW[4])+hdr('Stroke',CW[5])+hdr('Notes',CW[6]))+
+      rows+'</w:tbl>'+para('',{after:200});
+  }).join('');
+
+  const strokeSummary=Object.entries(r.strokeDist||{}).filter(([,v])=>v>0).map(([s,v])=>v+'×'+s).join(', ');
+  const docXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>
+${para(e2(r.name),{bold:true,center:true,sz:24,after:80})}
+${para('Relay Plan · '+r.teams.length+' teams · '+r.dist+'m per leg'+(strokeSummary?' · '+strokeSummary:''),{center:true,sz:18,after:200})}
+${teamTables}
+${para('Ages as of Dec 31, 2026',{sz:16,after:0})}
+<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720"/></w:sectPr>
+</w:body></w:document>`;
+
+  Z.file('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+  Z.file('_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+  Z.file('word/_rels/document.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>');
+  Z.file('word/document.xml',docXml);
+  Z.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}}).then(blob=>{
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=r.name.replace(/[^a-zA-Z0-9]/g,'_').slice(0,40)+'_relay.docx';a.click();
+    flash('rb-msg','Relay plan exported as .docx.');
+  });
+}
+
+// ── Saved relays ──
+function rbDeleteSaved(id){
+  if(!confirm('Delete this relay plan?'))return;
+  rbRelays=rbRelays.filter(r=>r.id!==id);rbSave();rbRenderSaved();
+}
+function rbLoadSaved(id){
+  const r=rbRelays.find(x=>x.id===id);if(!r)return;
+  rbCurrentRelay={...r};
+  rbSelectedSwimmerIds=new Set(r.teams.flatMap(t=>t.legs.map(l=>l.swimmerId).filter(Boolean)));
+  rbOverride=false;
+  document.getElementById('rb-workspace').style.display='';
+  document.getElementById('rb-pool-card').style.display='';
+  rbRenderWorkspace();
+}
+function rbRenderSaved(){
+  const wrap=document.getElementById('rb-saved-list');if(!wrap)return;
+  if(!rbRelays.length){wrap.innerHTML='<div class="empty">No relay plans saved yet.</div>';return;}
+  wrap.innerHTML=rbRelays.map(r=>{
+    const allErrors=r.teams?r.teams.flatMap(t=>rbValidate(t.legs||[],r.brackets||[])):[];
+    const valid=!allErrors.length;
+    return'<div style="background:#252a38;border:1px solid '+(valid?'#3d4460':'#7f1d1d')+';border-radius:8px;padding:10px 12px;margin-bottom:8px">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
+        '<span style="font-size:13px;font-weight:700;flex:1;color:#e2e8f0">'+esc(r.name)+'</span>'+
+        (valid?'<span style="font-size:10px;background:#064e3b;color:#6ee7b7;padding:1px 6px;border-radius:100px">✓</span>':'<span style="font-size:10px;background:#450a0a;color:#fca5a5;padding:1px 6px;border-radius:100px">⚠</span>')+
+        '<button class="btn xs" onclick="rbLoadSaved('+r.id+')">Load</button>'+
+        '<button class="btn xs danger" onclick="rbDeleteSaved('+r.id+')">✕</button>'+
+      '</div>'+
+      '<div style="font-size:10px;color:#6b7a8d">'+(r.teams?r.teams.length:0)+' teams · '+(r.teams?r.teams.reduce((s,t)=>s+t.legs.length,0):0)+' swimmers · '+r.dist+'m/leg</div>'+
+    '</div>';
+  }).join('');
+}
+
+function rbReset(){
+  rbCurrentRelay=null;rbOverride=false;rbSelectedSwimmerIds.clear();
+  document.getElementById('rb-workspace').style.display='none';
+  document.getElementById('rb-pool-card').style.display='none';
 }
 
 
