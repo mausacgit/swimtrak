@@ -3665,40 +3665,30 @@ function rbInit(){
 function rbPopulateMeetFilter(){
   const sel=document.getElementById('rb-meet-filter');if(!sel)return;
   const current=sel.value;
-  sel.innerHTML='<option value="">All swimmers (no filter)</option>';
-  // Get meets that have pending entries
-  const meetNames=[...new Set(pendingEntries.filter(p=>!p.done&&p.meetName).map(p=>p.meetName))];
-  // Also include meets from efSwimmerEntries context if in EF mode
-  meetNames.forEach(name=>{
+  sel.innerHTML='<option value="">— All swimmers (no filter) —</option>';
+  // Show all meets from Logged Meets
+  meets.forEach(m=>{
+    if(!m.name)return;
     const o=document.createElement('option');
-    o.value=name;o.textContent=name;
+    o.value=m.name;o.textContent=m.name+(m.date?' ('+m.date+')':'');
     sel.appendChild(o);
   });
-  // Restore selection
-  if(current)sel.value=current;
-  // If coming from EF mode, pre-select the current meet
+  // Restore previous selection if still valid
+  if(current&&meets.find(m=>m.name===current))sel.value=current;
+  // If coming from Entry Form, pre-select that meet
   if(rbEfModeActive){
     const efMeet=(document.getElementById('ef-meet-name')||{}).value||'';
     if(efMeet)sel.value=efMeet;
-    rbApplyMeetFilter();
   }
 }
 
 function rbApplyMeetFilter(){
   const sel=document.getElementById('rb-meet-filter');if(!sel)return;
   const meetName=sel.value;
-  if(!meetName){
-    rbMeetFilterIds=null;
-    // If was in EF mode and user clears filter, exit EF mode
-    rbEfModeActive=false;
-  } else {
-    // Get all swimmer IDs with pending entries for this meet
-    const ids=new Set(pendingEntries.filter(p=>p.meetName===meetName&&!p.done&&p.swimmerId).map(p=>p.swimmerId));
-    // Also include swimmers in efSelectedSwimmers if EF mode
-    if(rbEfModeActive)efSelectedSwimmers.forEach(id=>ids.add(id));
-    rbMeetFilterIds=ids.size?ids:null;
-    rbEfModeActive=true;
-  }
+  // Meet filter is purely for labelling/context — pool shows ALL swimmers
+  // User manually checks who's in the relay from the full roster
+  rbMeetFilterIds=null; // no automatic filtering
+  rbEfModeActive=!!meetName;
   rbRenderPoolList();
 }
 
@@ -3786,10 +3776,8 @@ function rbOpenPool(){
 
 function rbRenderPoolList(){
   const gender=document.getElementById('rb-gender').value;
-  // Filter by meet if a filter is active
-  const basePool=rbMeetFilterIds
-    ?sorted(swimmers).filter(s=>rbMeetFilterIds.has(s.id))
-    :sorted(swimmers);
+  // Full roster always shown — user selects manually
+  const basePool=sorted(swimmers);
   const pool=basePool.filter(s=>!gender||(s.gender||'M')===gender);
   const wrap=document.getElementById('rb-swimmer-pool');
   const brackets=rbGetBrackets();
@@ -3813,9 +3801,7 @@ function rbRenderPoolList(){
     '</div>';
   }).join('');
   const countEl=document.getElementById('rb-pool-selected');
-  if(countEl)countEl.textContent=rbMeetFilterIds
-    ?'('+rbSelectedSwimmerIds.size+' from meet: '+((document.getElementById('rb-meet-filter')||{}).value||'filter')+')'
-    :'('+rbSelectedSwimmerIds.size+' selected)';
+  if(countEl)countEl.textContent='('+rbSelectedSwimmerIds.size+' selected'+(rbEfModeActive?' for '+esc((document.getElementById('rb-meet-filter')||{}).value||''):'')+')'
 }
 function rbTogglePoolSwimmer(sid,row){
   if(rbSelectedSwimmerIds.has(sid))rbSelectedSwimmerIds.delete(sid);
@@ -3824,7 +3810,7 @@ function rbTogglePoolSwimmer(sid,row){
 }
 function rbSelectAllPool(){
   const gender=document.getElementById('rb-gender').value;
-  const basePool=rbMeetFilterIds?swimmers.filter(s=>rbMeetFilterIds.has(s.id)):swimmers;
+  const basePool=swimmers;
   basePool.filter(s=>!gender||(s.gender||'M')===gender).forEach(s=>rbSelectedSwimmerIds.add(s.id));
   rbRenderPoolList();
 }
