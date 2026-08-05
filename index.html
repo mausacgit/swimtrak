@@ -478,7 +478,15 @@ canvas{background:#1a1d27}
   <p style="font-size:12px;color:#8892a4;margin-bottom:12px">Plan relay teams with stroke distribution, stair-step validation, and automatic team balancing. Supports up to 20 swimmers across multiple teams.</p>
 
   <div class="card">
-    <p class="card-title">Step 1 — Relay setup</p>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <p class="card-title" style="margin:0;flex:1">Step 1 — Relay setup</p>
+      <div style="display:flex;align-items:center;gap:6px">
+        <label style="font-size:11px;color:#8892a4">Filter swimmers by meet:</label>
+        <select id="rb-meet-filter" onchange="rbApplyMeetFilter()" style="height:26px;font-size:11px;min-width:180px">
+          <option value="">All swimmers (no filter)</option>
+        </select>
+      </div>
+    </div>
     <div class="form-row">
       <div class="field" style="flex:2;min-width:160px"><label>Relay name</label><input type="text" id="rb-name" placeholder="e.g. Fun Relay — All Squad"/></div>
       <div class="field" style="max-width:90px"><label>Gender</label><select id="rb-gender"><option value="M">Boys</option><option value="F">Girls</option><option value="">Mixed</option></select></div>
@@ -763,6 +771,8 @@ var rbCurrentRelay=null;
 var rbDragSwimmerId=null;
 var rbOverride=false;
 var rbSelectedSwimmerIds=new Set();
+var rbEfModeActive=false;
+var rbMeetFilterIds=null; // Set of swimmerIds allowed by meet filter, null = no filter // true when relay builder is accessed from Entry Form context
 
 function save(){
   localStorage.setItem('swt_swimmers',JSON.stringify(swimmers));
@@ -3525,7 +3535,7 @@ function efRenderRelayList(){
               rbRelays.map(r=>'<option value="'+r.id+'">'+esc(r.name)+'</option>').join('')+
             '</select>'+
             '<button class="btn xs" onclick="efLinkRelayPlan(\''+re.id+'\')">Apply</button>'+
-            '<button class="btn xs" onclick="showTab(\'relay-builder\')" title="Go to Relay Builder">Open Relay Builder ↗</button>'+
+            '<button class="btn xs" onclick="rbEfModeActive=true;showTab(\'relay-builder\')" title="Go to Relay Builder">Open Relay Builder ↗</button>'+
           '</div>'+
           // Legs
           '<div style="display:flex;flex-direction:column;gap:5px">'+
@@ -3645,10 +3655,51 @@ function rbSave(){localStorage.setItem('swt_relays',JSON.stringify(rbRelays));}
 function rbInit(){
   rbUpdateLegTotal();
   rbRenderSaved();
+  rbPopulateMeetFilter();
   ['rb-fr','rb-bk','rb-br','rb-fl'].forEach(id=>{
     const el=document.getElementById(id);
     if(el)el.oninput=rbUpdateLegTotal;
   });
+}
+
+function rbPopulateMeetFilter(){
+  const sel=document.getElementById('rb-meet-filter');if(!sel)return;
+  const current=sel.value;
+  sel.innerHTML='<option value="">All swimmers (no filter)</option>';
+  // Get meets that have pending entries
+  const meetNames=[...new Set(pendingEntries.filter(p=>!p.done&&p.meetName).map(p=>p.meetName))];
+  // Also include meets from efSwimmerEntries context if in EF mode
+  meetNames.forEach(name=>{
+    const o=document.createElement('option');
+    o.value=name;o.textContent=name;
+    sel.appendChild(o);
+  });
+  // Restore selection
+  if(current)sel.value=current;
+  // If coming from EF mode, pre-select the current meet
+  if(rbEfModeActive){
+    const efMeet=(document.getElementById('ef-meet-name')||{}).value||'';
+    if(efMeet)sel.value=efMeet;
+    rbApplyMeetFilter();
+  }
+}
+
+function rbApplyMeetFilter(){
+  const sel=document.getElementById('rb-meet-filter');if(!sel)return;
+  const meetName=sel.value;
+  if(!meetName){
+    rbMeetFilterIds=null;
+    // If was in EF mode and user clears filter, exit EF mode
+    rbEfModeActive=false;
+  } else {
+    // Get all swimmer IDs with pending entries for this meet
+    const ids=new Set(pendingEntries.filter(p=>p.meetName===meetName&&!p.done&&p.swimmerId).map(p=>p.swimmerId));
+    // Also include swimmers in efSelectedSwimmers if EF mode
+    if(rbEfModeActive)efSelectedSwimmers.forEach(id=>ids.add(id));
+    rbMeetFilterIds=ids.size?ids:null;
+    rbEfModeActive=true;
+  }
+  rbRenderPoolList();
 }
 
 function rbUpdateLegTotal(){
@@ -3735,7 +3786,11 @@ function rbOpenPool(){
 
 function rbRenderPoolList(){
   const gender=document.getElementById('rb-gender').value;
-  const pool=sorted(swimmers).filter(s=>!gender||(s.gender||'M')===gender);
+  // Filter by meet if a filter is active
+  const basePool=rbMeetFilterIds
+    ?sorted(swimmers).filter(s=>rbMeetFilterIds.has(s.id))
+    :sorted(swimmers);
+  const pool=basePool.filter(s=>!gender||(s.gender||'M')===gender);
   const wrap=document.getElementById('rb-swimmer-pool');
   const brackets=rbGetBrackets();
   wrap.innerHTML=pool.map(s=>{
@@ -3758,7 +3813,9 @@ function rbRenderPoolList(){
     '</div>';
   }).join('');
   const countEl=document.getElementById('rb-pool-selected');
-  if(countEl)countEl.textContent='('+rbSelectedSwimmerIds.size+' selected)';
+  if(countEl)countEl.textContent=rbMeetFilterIds
+    ?'('+rbSelectedSwimmerIds.size+' from meet: '+((document.getElementById('rb-meet-filter')||{}).value||'filter')+')'
+    :'('+rbSelectedSwimmerIds.size+' selected)';
 }
 function rbTogglePoolSwimmer(sid,row){
   if(rbSelectedSwimmerIds.has(sid))rbSelectedSwimmerIds.delete(sid);
@@ -3767,7 +3824,8 @@ function rbTogglePoolSwimmer(sid,row){
 }
 function rbSelectAllPool(){
   const gender=document.getElementById('rb-gender').value;
-  swimmers.filter(s=>!gender||(s.gender||'M')===gender).forEach(s=>rbSelectedSwimmerIds.add(s.id));
+  const basePool=rbMeetFilterIds?swimmers.filter(s=>rbMeetFilterIds.has(s.id)):swimmers;
+  basePool.filter(s=>!gender||(s.gender||'M')===gender).forEach(s=>rbSelectedSwimmerIds.add(s.id));
   rbRenderPoolList();
 }
 function rbClearPool(){rbSelectedSwimmerIds.clear();rbRenderPoolList();}
@@ -4111,7 +4169,7 @@ function rbRenderSaved(){
 }
 
 function rbReset(){
-  rbCurrentRelay=null;rbOverride=false;rbSelectedSwimmerIds.clear();
+  rbCurrentRelay=null;rbOverride=false;rbSelectedSwimmerIds.clear();rbEfModeActive=false;rbMeetFilterIds=null;
   document.getElementById('rb-workspace').style.display='none';
   document.getElementById('rb-pool-card').style.display='none';
 }
