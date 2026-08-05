@@ -675,6 +675,16 @@ canvas{background:#1a1d27}
     <div id="ef-swimmer-list"></div>
   </div>
 
+  <!-- Relay Entries Card -->
+  <div class="card" id="ef-relay-card">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <p class="card-title" style="margin:0;flex:1">Relay entries</p>
+      <button class="btn xs" onclick="efAddRelayManual()">+ Add relay event</button>
+    </div>
+    <p style="font-size:11px;color:#8892a4;margin-bottom:8px">Add relay events manually or import from a .hyv file. Assign swimmers using saved relay plans from the Relay Builder.</p>
+    <div id="ef-relay-list"></div>
+  </div>
+
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
     <button class="btn primary sm" onclick="generateEntryForm()">
       <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:#fff;stroke-width:2;fill:none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -748,6 +758,7 @@ let rosterGenderSplit = false;
 
 // Relay builder state — declared before save() to avoid temporal dead zone
 var rbRelays=[];
+var efRelayEntries=[]; // [{id, evNo, name, type, legDist, legs:[{stroke,swimmerId}], savedRelayId}]
 var rbCurrentRelay=null;
 var rbDragSwimmerId=null;
 var rbOverride=false;
@@ -886,6 +897,7 @@ function showTab(t){
   if(t==='attendance'){renderAttendanceGrid();renderAttHistory();renderPeriodsUI();}
   if(t==='meet-entries'){renderMeetEntriesTable();populateMeetEventSelect();}
   if(t==='relay-builder'){rbInit();}
+  if(t==='entry-form'){efRenderRelayList();}
   if(t==='pb-chart'){populatePBSelects();renderPBChart();}
   if(t==='meets')renderMeetsList();
   if(t==='training-overview')renderTrainingOverview();
@@ -2940,8 +2952,8 @@ function efImportHyv(input){
 
       // Show relay events as info if any found
       if(relayEvents.length){
-        const names=relayEvents.map(r=>r.no+': '+r.name+' ('+r.legsCount+'×'+r.legDist+'m)').join(', ');
-        flash('ef-msg','Loaded '+events.length+' individual events. Relay events found (not added to individual list): '+names);
+        efAddRelayFromHyv(relayEvents);
+        flash('ef-msg','Loaded '+events.length+' individual events and '+relayEvents.length+' relay event(s) added to Relay Entries.');
       } else {
         flash('ef-msg','Loaded '+events.length+' events from .hyv file.');
       }
@@ -3409,6 +3421,35 @@ function generateEntryFormDOCX(entries,meetName,teamName){
 <w:p><w:pPr><w:spacing w:before="160"/></w:pPr>
   <w:r><w:rPr><w:i/><w:color w:val="555555"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr>
   <w:t>Total entries: ${entries.length} &#x2014; Ages as of Dec 31, 2026</w:t></w:r></w:p>
+${efRelayEntries.length?`
+<w:p><w:pPr><w:pageBreakBefore/><w:spacing w:before="0" w:after="200"/></w:pPr>
+  <w:r><w:rPr><w:b/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t>${esc(meetName)}</w:t></w:r></w:p>
+<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
+  <w:r><w:rPr><w:b/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t>OFFICIAL RELAY ENTRY FORM</w:t></w:r></w:p>
+${efRelayEntries.map(re=>{
+  const relayCW=[300,2300,1060,520,640,900,1060,700];
+  const relayGrid=relayCW.map(w=>'<w:gridCol w:w="'+w+'"/>').join('');
+  function relayHdr(t,w){return'<w:tc><w:tcPr><w:tcW w:w="'+w+'" w:type="dxa"/><w:tcBorders><w:top w:val="single" w:sz="4" w:color="auto"/><w:left w:val="single" w:sz="4" w:color="auto"/><w:bottom w:val="single" w:sz="4" w:color="auto"/><w:right w:val="single" w:sz="4" w:color="auto"/></w:tcBorders></w:tcPr><w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="16"/></w:rPr><w:t xml:space="preserve">'+esc(t)+'</w:t></w:r></w:p></w:tc>';}
+  function relayCell(t,w,align){return'<w:tc><w:tcPr><w:tcW w:w="'+w+'" w:type="dxa"/><w:tcBorders><w:top w:val="single" w:sz="4" w:color="auto"/><w:left w:val="single" w:sz="4" w:color="auto"/><w:bottom w:val="single" w:sz="4" w:color="auto"/><w:right w:val="single" w:sz="4" w:color="auto"/></w:tcBorders></w:tcPr><w:p><w:pPr><w:jc w:val="'+(align||'left')+'"/></w:pPr><w:r><w:rPr><w:sz w:val="17"/></w:rPr><w:t xml:space="preserve">'+esc(t)+'</w:t></w:r></w:p></w:tc>';}
+  const legRows=re.legs.map((leg,li)=>{
+    const sw=leg.swimmerId?swimmers.find(s=>s.id===leg.swimmerId):null;
+    const dn=sw?lastFirstName(sw):'';
+    const age=sw?String(rbAge(sw)):'';
+    let bday='';if(sw&&sw.birthday){const b=sw.birthday;if(b.includes('-')){const p=b.split('-');bday=p[1]+'/'+p[2]+'/'+p[0];}else if(b.length===8)bday=b.slice(0,2)+'/'+b.slice(2,4)+'/'+b.slice(4,8);}
+    const gender=sw?(sw.gender==='M'?'M':'F'):'';
+    return'<w:tr><w:trPr><w:trHeight w:val="380" w:hRule="atLeast"/></w:trPr>'+
+      relayCell(String(li+1),relayCW[0],'center')+relayCell(dn,relayCW[1])+relayCell(bday,relayCW[2],'center')+
+      relayCell(age,relayCW[3],'center')+relayCell(gender,relayCW[4],'center')+
+      relayCell(leg.stroke,relayCW[5])+relayCell('',relayCW[6])+relayCell('',relayCW[7])+'</w:tr>';
+  }).join('');
+  return'<w:p><w:pPr><w:spacing w:before="160" w:after="80"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">Event '+esc(re.evNo)+' — '+esc(re.name)+(re.legDist?' ('+re.legs.length+'×'+re.legDist+'m)':'')+'</w:t></w:r></w:p>'+
+    '<w:tbl><w:tblPr><w:tblW w:w="7480" w:type="dxa"/><w:tblLayout w:type="fixed"/></w:tblPr>'+
+    '<w:tblGrid>'+relayGrid+'</w:tblGrid>'+
+    '<w:tr><w:trPr><w:trHeight w:val="400" w:hRule="atLeast"/></w:trPr>'+
+    relayHdr('Leg',relayCW[0])+relayHdr('Name (Family, First)',relayCW[1])+relayHdr('Birthday',relayCW[2])+relayHdr('Age',relayCW[3])+relayHdr('M/F',relayCW[4])+relayHdr('Stroke',relayCW[5])+relayHdr('Seed Time',relayCW[6])+relayHdr('Remarks',relayCW[7])+'</w:tr>'+
+    legRows+'</w:tbl><w:p><w:pPr><w:spacing w:after="200"/></w:pPr><w:r><w:t></w:t></w:r></w:p>';
+}).join('')}
+`:''}
 <w:sectPr><w:pgSz w:w="12240" w:h="15840"/>
   <w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720"/></w:sectPr>
 </w:body></w:document>`;
@@ -3448,6 +3489,152 @@ function generateEntryFormDOCX(entries,meetName,teamName){
     flash('ef-msg','Downloaded as .docx. Open in Word or Google Docs, fill in coach details, then print.');
   });
 }
+
+// ===========================================================
+// ENTRY FORM — RELAY ENTRIES
+// ===========================================================
+
+const EF_STROKE_OPTIONS=['Backstroke','Breaststroke','Butterfly','Freestyle'];
+
+function efRenderRelayList(){
+  const wrap=document.getElementById('ef-relay-list');if(!wrap)return;
+  if(!efRelayEntries.length){
+    wrap.innerHTML='<div class="empty" style="padding:8px 0">No relay events added yet.</div>';return;
+  }
+  wrap.innerHTML=efRelayEntries.map((re,ri)=>{
+    const isExpanded=efExpandedSwimmers.has('relay_'+re.id);
+    const assignedCount=re.legs.filter(l=>l.swimmerId).length;
+    const summary=assignedCount+'/'+re.legs.length+' swimmers assigned';
+    return'<div style="background:#1a1d27;border:1px solid #2d3348;border-radius:8px;margin-bottom:6px;overflow:hidden">'+
+      // Header
+      '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer" onclick="efToggleRelayExpand(\''+re.id+'\')">'+
+        '<span style="font-size:12px;font-weight:700;color:#e2e8f0;flex:1">'+
+          '<span style="color:#8892a4;font-family:monospace;margin-right:6px">'+re.evNo+'</span>'+esc(re.name)+
+        '</span>'+
+        '<span style="font-size:10px;color:#6b7a8d">'+summary+'</span>'+
+        '<button class="btn xs danger" onclick="efRemoveRelay('+ri+');event.stopPropagation()" style="font-size:10px">✕</button>'+
+        '<span style="color:#8892a4;font-size:12px;margin-left:2px">'+(isExpanded?'▲':'▼')+'</span>'+
+      '</div>'+
+      (isExpanded?
+        '<div style="border-top:1px solid #2d3348;padding:10px 12px">'+
+          // Link to saved relay
+          '<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">'+
+            '<label style="font-size:11px;color:#8892a4">Import from saved relay:</label>'+
+            '<select id="ef-relay-saved-'+re.id+'" style="height:26px;font-size:11px;flex:1;min-width:160px">'+
+              '<option value="">— pick a saved relay plan —</option>'+
+              rbRelays.map(r=>'<option value="'+r.id+'">'+esc(r.name)+'</option>').join('')+
+            '</select>'+
+            '<button class="btn xs" onclick="efLinkRelayPlan(\''+re.id+'\')">Apply</button>'+
+            '<button class="btn xs" onclick="showTab(\'relay-builder\')" title="Go to Relay Builder">Open Relay Builder ↗</button>'+
+          '</div>'+
+          // Legs
+          '<div style="display:flex;flex-direction:column;gap:5px">'+
+            re.legs.map((leg,li)=>{
+              const sw=leg.swimmerId?swimmers.find(s=>s.id===leg.swimmerId):null;
+              return'<div style="display:flex;align-items:center;gap:6px;background:#252a38;border-radius:6px;padding:5px 8px">'+
+                '<span style="font-size:10px;color:#8892a4;min-width:20px">'+(li+1)+'</span>'+
+                '<select onchange="efUpdateRelayLegStroke(\''+re.id+'\','+li+',this.value)" style="height:24px;font-size:10px;width:100px;background:#1a1d27">'+
+                  EF_STROKE_OPTIONS.map(s=>'<option'+(s===leg.stroke?' selected':'')+'>'+s+'</option>').join('')+
+                '</select>'+
+                '<select onchange="efUpdateRelayLegSwimmer(\''+re.id+'\','+li+',this.value)" style="height:24px;font-size:11px;flex:1;background:#1a1d27">'+
+                  '<option value="">— swimmer —</option>'+
+                  sorted(swimmers).map(s=>'<option value="'+s.id+'"'+(leg.swimmerId===s.id?' selected':'')+'>'+esc(lastFirstName(s))+'</option>').join('')+
+                '</select>'+
+                (sw?'<span style="font-size:10px;color:#8892a4">'+rbAge(sw)+'y</span>':'')+
+              '</div>';
+            }).join('')+
+          '</div>'+
+          // Add/remove legs
+          '<div style="display:flex;gap:6px;margin-top:8px">'+
+            '<button class="btn xs" onclick="efAddRelayLeg(\''+re.id+'\')">+ Leg</button>'+
+            (re.legs.length>1?'<button class="btn xs danger" onclick="efRemoveRelayLeg(\''+re.id+'\')">− Leg</button>':'')+
+          '</div>'+
+        '</div>'
+      :'')+
+    '</div>';
+  }).join('');
+}
+
+function efToggleRelayExpand(id){
+  const key='relay_'+id;
+  if(efExpandedSwimmers.has(key))efExpandedSwimmers.delete(key);
+  else efExpandedSwimmers.add(key);
+  efRenderRelayList();
+}
+
+function efAddRelayManual(){
+  const id=Date.now();
+  efRelayEntries.push({
+    id,evNo:'',name:'New Relay',type:'medley',legDist:25,
+    legs:[
+      {stroke:'Backstroke',swimmerId:null},
+      {stroke:'Breaststroke',swimmerId:null},
+      {stroke:'Butterfly',swimmerId:null},
+      {stroke:'Freestyle',swimmerId:null},
+    ]
+  });
+  efExpandedSwimmers.add('relay_'+id);
+  efRenderRelayList();
+}
+
+function efRemoveRelay(ri){
+  if(!confirm('Remove this relay event?'))return;
+  efRelayEntries.splice(ri,1);
+  efRenderRelayList();
+}
+
+function efAddRelayLeg(id){
+  const re=efRelayEntries.find(r=>r.id===id);if(!re)return;
+  re.legs.push({stroke:'Freestyle',swimmerId:null});
+  efRenderRelayList();
+}
+
+function efRemoveRelayLeg(id){
+  const re=efRelayEntries.find(r=>r.id===id);if(!re||re.legs.length<=1)return;
+  re.legs.pop();
+  efRenderRelayList();
+}
+
+function efUpdateRelayLegStroke(id,li,stroke){
+  const re=efRelayEntries.find(r=>r.id===id);if(!re)return;
+  re.legs[li].stroke=stroke;
+}
+
+function efUpdateRelayLegSwimmer(id,li,val){
+  const re=efRelayEntries.find(r=>r.id===id);if(!re)return;
+  re.legs[li].swimmerId=val?parseInt(val):null;
+}
+
+function efLinkRelayPlan(id){
+  const sel=document.getElementById('ef-relay-saved-'+id);if(!sel||!sel.value)return;
+  const plan=rbRelays.find(r=>r.id===parseInt(sel.value));if(!plan)return;
+  const re=efRelayEntries.find(r=>r.id===id);if(!re)return;
+  // Take first team from the saved plan
+  const team=plan.teams&&plan.teams[0];if(!team)return;
+  re.name=plan.name;
+  re.legs=team.legs.map(l=>({
+    stroke:{FR:'Freestyle',BK:'Backstroke',BR:'Breaststroke',FL:'Butterfly'}[l.stroke]||l.stroke||'Freestyle',
+    swimmerId:l.swimmerId||null
+  }));
+  re.savedRelayId=plan.id;
+  efRenderRelayList();
+}
+
+// Called from HYV import — adds detected relay events
+function efAddRelayFromHyv(relayEventsArr){
+  relayEventsArr.forEach(r=>{
+    if(efRelayEntries.find(e=>e.evNo===String(r.no)))return; // don't dupe
+    const legs=[];
+    if(r.strokeCode===5){// medley
+      ['Backstroke','Breaststroke','Butterfly','Freestyle'].forEach(s=>legs.push({stroke:s,swimmerId:null}));
+    } else {
+      for(let i=0;i<4;i++)legs.push({stroke:'Freestyle',swimmerId:null});
+    }
+    efRelayEntries.push({id:Date.now()+Math.random(),evNo:String(r.no),name:r.name,type:r.strokeCode===5?'medley':'free',legDist:r.legDist,legs});
+  });
+  efRenderRelayList();
+}
+
 
 // ===========================================================
 // RELAY BUILDER — Multi-team, multi-leg, balanced
