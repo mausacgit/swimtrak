@@ -3766,6 +3766,33 @@ function rbGetScore(sw,stroke){
   return null;
 }
 
+// Returns true if swimmer has an actual 50m PB for this stroke (not estimated)
+function rbHasRealPB(sw,stroke){
+  const ev=RB_STROKE_EVENTS[stroke];if(!ev)return false;
+  return races.some(r=>r.swimmerId===sw.id&&r.event===ev&&r.finalTime);
+}
+
+// Find the next best replacement for a leg:
+// - Has actual PB for that stroke
+// - Is not already on any team
+// - Fits same bracket slot or younger (bracket-aware), unless rbOverride
+function rbNextBest(stroke,currentBracketIdx,allTeams,pool,brackets){
+  const allUsed=new Set(allTeams.flatMap(t=>t.legs.map(l=>l.swimmerId).filter(Boolean)));
+  const candidates=pool
+    .filter(sw=>!allUsed.has(sw.id))
+    .filter(sw=>rbHasRealPB(sw,stroke))
+    .filter(sw=>{
+      if(rbOverride||!brackets.length)return true;
+      const bi=rbBracketOf(rbAge(sw),brackets);
+      // Must be same bracket or younger (can level up, not down)
+      return bi<=currentBracketIdx;
+    });
+  if(!candidates.length)return null;
+  candidates.sort((a,b)=>(rbGetScore(a,stroke)||999)-(rbGetScore(b,stroke)||999));
+  const best=candidates[0];
+  return{sw:best,time:rbGetScore(best,stroke),bracketIdx:rbBracketOf(rbAge(best),brackets)};
+}
+
 // ── Step 2: swimmer pool ──
 function rbOpenPool(){
   const name=document.getElementById('rb-name').value.trim();
@@ -3905,11 +3932,11 @@ function rbAutoSuggest(){
       if(!candidates.length)return;
       const pick=candidates[0];
       assigned.add(pick.sw.id);
-      result.push({stroke,swimmerId:pick.sw.id,time:pick.scores[stroke]});
+      result.push({stroke,swimmerId:pick.sw.id,time:pick.scores[stroke],estimated:!rbHasRealPB(pick.sw,stroke)});
     });
     // Any remaining unassigned members get FR
     remaining.filter(m=>!assigned.has(m.sw.id)).forEach(m=>{
-      result.push({stroke:'FR',swimmerId:m.sw.id,time:m.scores['FR']});
+      result.push({stroke:'FR',swimmerId:m.sw.id,time:m.scores['FR'],estimated:!rbHasRealPB(m.sw,'FR')});
     });
     return result;
   }
@@ -4132,9 +4159,11 @@ function rbRenderWorkspace(){
               (sw?esc(lastFirstName(sw)):'<span style="color:#4b5563;font-style:italic">empty</span>')+
             '</span>'+
             (age!==null?'<span style="font-size:10px;color:#8892a4">'+age+'y</span>':'')+
-            (leg.time?'<span style="font-size:10px;color:#6b7a8d;font-family:monospace">'+formatTime(leg.time)+'</span>':'')+
+            (leg.time?'<span style="font-size:10px;color:'+(leg.estimated?'#f59e0b':'#6b7a8d')+';font-family:monospace">'+formatTime(leg.time)+(leg.estimated?' ⚠est':'')+'</span>':'')+
             '<button class="btn xs danger" onclick="rbRemoveLeg('+ti+','+li+')" style="padding:0 4px;height:20px">✕</button>'+
-          '</div>';
+          '</div>'+
+          (leg.estimated?rbNextBestHint(leg.stroke,ti,li,r):'')+
+          '';
         }).join('')+
       '</div>'+
       // Add swimmer from pool buttons
@@ -4160,6 +4189,41 @@ function rbRenderWorkspace(){
     else if(!allErrors.length)badge.innerHTML='<span style="background:#064e3b;color:#6ee7b7;padding:2px 8px;border-radius:100px;font-size:10px">✓ All teams valid</span>';
     else badge.innerHTML='<span style="background:#450a0a;color:#fca5a5;padding:2px 8px;border-radius:100px;font-size:10px">⚠ Stair-step violations</span>';
   }
+}
+
+function rbNextBestHint(stroke,ti,li,r){
+  // Get full pool for this relay
+  const pool=[...rbSelectedSwimmerIds].map(id=>swimmers.find(s=>s.id===id)).filter(Boolean);
+  const gender=document.getElementById('rb-gender').value;
+  const filteredPool=pool.filter(s=>!gender||(s.gender||'M')===gender);
+  // Get bracket index of current swimmer in this leg
+  const currentSw=r.teams[ti].legs[li].swimmerId?swimmers.find(s=>s.id===r.teams[ti].legs[li].swimmerId):null;
+  const currentBi=currentSw?rbBracketOf(rbAge(currentSw),r.brackets):-1;
+  const next=rbNextBest(stroke,currentBi,r.teams,filteredPool,r.brackets);
+  if(!next)return '<div style="font-size:10px;color:#6b7a8d;padding:2px 8px 4px 32px;font-style:italic">No alternative with actual '+stroke+' PB'+(rbOverride?'':' in valid bracket')+'</div>';
+  const bk=next.bracketIdx>=0&&r.brackets[next.bracketIdx];
+  const bkLabel=bk?(bk.max>=99?bk.min+'+':bk.min+'–'+bk.max):'';
+  return'<div style="display:flex;align-items:center;gap:6px;padding:2px 8px 5px 32px;background:#1a1d27;border-radius:0 0 6px 6px;margin-top:-4px">'+
+    '<span style="font-size:10px;color:#f59e0b">↳ Next best:</span>'+
+    '<span style="font-size:10px;color:#e2e8f0">'+esc(lastFirstName(next.sw))+'</span>'+
+    (bkLabel?'<span style="font-size:9px;color:#6b7a8d">['+bkLabel+']</span>':'')+
+    '<span style="font-size:10px;color:#34d399;font-family:monospace">'+formatTime(next.time)+'</span>'+
+    '<button class="btn xs" onclick="rbSwapWithNextBest('+ti+','+li+','+next.sw.id+')" style="font-size:9px;padding:0 5px;height:18px">Swap</button>'+
+  '</div>';
+}
+
+function rbSwapWithNextBest(ti,li,newSwId){
+  if(!rbCurrentRelay)return;
+  const leg=rbCurrentRelay.teams[ti].legs[li];
+  const newSw=swimmers.find(s=>s.id===newSwId);if(!newSw)return;
+  const newTime=rbGetScore(newSw,leg.stroke)||999;
+  // Update team total time
+  rbCurrentRelay.teams[ti].totalTime=(rbCurrentRelay.teams[ti].totalTime||0)-leg.time+newTime;
+  leg.swimmerId=newSwId;
+  leg.time=newTime;
+  leg.estimated=false; // now has real PB
+  rbRenderWorkspace();
+  flash('rb-msg',lastFirstName(newSw)+' swapped in for '+leg.stroke+'.');
 }
 
 function rbDropLeg(event,ti,li){
