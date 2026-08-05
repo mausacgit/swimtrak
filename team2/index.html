@@ -4011,15 +4011,14 @@ function rbRenderWorkspace(){
         '<button class="btn xs" onclick="rbShowAddToTeam('+ti+')" style="font-size:10px">+ Add swimmer</button>'+
       '</div>'+
       '<div id="rb-add-pool-'+ti+'" style="display:none;margin-top:6px;max-height:150px;overflow-y:auto;border:1px solid #2d3348;border-radius:6px;padding:4px">'+
-        pool.filter(sw=>!r.teams.some(t=>t.legs.some(l=>l.swimmerId===sw.id))).map(sw=>
+        ([...rbSelectedSwimmerIds].map(id=>swimmers.find(s=>s.id===id)).filter(Boolean))
+          .filter(sw=>!r.teams.some(t=>t.legs.some(l=>l.swimmerId===sw.id))).map(sw=>
           '<div style="font-size:11px;padding:3px 6px;cursor:pointer;border-radius:4px;color:#e2e8f0" '+
           'onmouseover="this.style.background=\'#2d3348\'" onmouseout="this.style.background=\'\'" '+
           'onclick="rbAddSwimmerToTeam('+ti+','+sw.id+')">'+esc(lastFirstName(sw))+'</div>'
         ).join('')+
       '</div>'+
     '</div>';
-
-    function pool(){return[...rbSelectedSwimmerIds].map(id=>swimmers.find(s=>s.id===id)).filter(Boolean);}
   }).join('');
 
   // Validation summary
