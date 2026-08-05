@@ -548,12 +548,16 @@ canvas{background:#1a1d27}
       <button class="btn xs danger" onclick="rbReset()">Start over</button>
     </div>
     <div id="rb-teams-wrap" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px"></div>
-    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px">
+    <p id="rb-msg" class="msg-ok" style="margin-top:8px"></p>
+  </div>
+
+  <!-- Action buttons — always visible once pool is open -->
+  <div id="rb-action-btns" style="display:none;margin-top:10px">
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
       <button class="btn primary sm" onclick="rbAddNextTeam()">+ Add next team</button>
       <button class="btn sm" onclick="rbAddToSession()">✓ Add to session</button>
       <button class="btn xs" onclick="rbSaveAndExport()">Save &amp; export this relay only</button>
     </div>
-    <p id="rb-msg" class="msg-ok" style="margin-top:8px"></p>
   </div>
 
   <!-- Session card -->
@@ -3814,6 +3818,7 @@ function rbOpenPool(){
   rbSelectedSwimmerIds.clear();
   document.getElementById('rb-pool-card').style.display='';
   rbRenderPoolList();
+  const ab=document.getElementById('rb-action-btns');if(ab)ab.style.display='';
 }
 
 function rbRenderPoolList(){
@@ -4149,6 +4154,7 @@ function rbRenderWorkspace(){
   if(!rbCurrentRelay)return;
   document.getElementById('rb-workspace').style.display='';
   document.getElementById('rb-workspace-title').textContent=rbCurrentRelay.name;
+  const actionBtns=document.getElementById('rb-action-btns');if(actionBtns)actionBtns.style.display='';
   const wrap=document.getElementById('rb-teams-wrap');
   const r=rbCurrentRelay;
   wrap.innerHTML=r.teams.map((team,ti)=>{
@@ -4309,6 +4315,7 @@ function rbAddToSession(){
   rbCurrentRelay=null;
   document.getElementById('rb-workspace').style.display='none';
   document.getElementById('rb-pool-card').style.display='none';
+  const ab2=document.getElementById('rb-action-btns');if(ab2)ab2.style.display='none';
   rbSelectedSwimmerIds.clear();
   flash('rb-msg','Added to session. Build your next relay.');
 }
@@ -4514,6 +4521,7 @@ function rbRenderSaved(){
 
 function rbReset(){
   rbCurrentRelay=null;rbOverride=false;rbSelectedSwimmerIds.clear();rbEfModeActive=false;rbMeetFilterIds=null;
+  const ab=document.getElementById('rb-action-btns');if(ab)ab.style.display='none';
   document.getElementById('rb-workspace').style.display='none';
   document.getElementById('rb-pool-card').style.display='none';
 }
