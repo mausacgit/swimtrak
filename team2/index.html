@@ -3834,70 +3834,201 @@ function rbGetStrokeDist(){
 function rbAutoSuggest(){
   const pool=[...rbSelectedSwimmerIds].map(id=>swimmers.find(s=>s.id===id)).filter(Boolean);
   if(!pool.length){alert('Select swimmers first.');return;}
-  const strokeLegs=rbGetStrokeDist();
+
+  const strokeLegs=rbGetStrokeDist(); // e.g. ['BK','BR','FL','FR'] for medley
+  const legsPerTeam=strokeLegs.length;
   const numTeams=parseInt(document.getElementById('rb-num-teams').value)||2;
   const balance=document.querySelector('input[name="rb-balance"]:checked')?.value||'competitive';
   const dist=parseInt(document.getElementById('rb-dist').value)||50;
   const brackets=rbGetBrackets();
+  const totalNeeded=legsPerTeam*numTeams;
 
-  // 1. Assign each swimmer their best stroke (greedy, respecting distribution counts)
-  const strokeCounts={FR:0,BK:0,BR:0,FL:0};
-  const maxCounts={};
-  strokeLegs.forEach(s=>maxCounts[s]=(maxCounts[s]||0)+1);
-  // Sort swimmers by "specialization" — difference between best and second-best stroke
+  if(pool.length<legsPerTeam){
+    alert('Not enough swimmers selected. Need at least '+legsPerTeam+' for '+numTeams+' team(s) of '+legsPerTeam+' legs.');return;
+  }
+
+  // ── Score every swimmer on every stroke ──
   const swimmerScores=pool.map(sw=>{
     const scores={};
     ['FR','BK','BR','FL'].forEach(str=>{scores[str]=rbGetScore(sw,str)||999;});
-    const sorted2=Object.entries(scores).sort((a,b)=>a[1]-b[1]);
-    const gap=sorted2.length>1?sorted2[1][1]-sorted2[0][1]:0;
-    return{sw,scores,bestStroke:sorted2[0][0],gap};
-  }).sort((a,b)=>b.gap-a.gap); // most specialized first
-
-  const assignments=new Map(); // swimmerId → {stroke, time}
-  const strokeFilled={FR:0,BK:0,BR:0,FL:0};
-  swimmerScores.forEach(({sw,scores})=>{
-    const sorted2=Object.entries(scores).sort((a,b)=>a[1]-b[1]);
-    let assigned=null;
-    for(const [str,time] of sorted2){
-      if((strokeFilled[str]||0)<(maxCounts[str]||0)){
-        assigned={stroke:str,time};strokeFilled[str]=(strokeFilled[str]||0)+1;break;
-      }
-    }
-    if(!assigned){
-      // Overflow — assign to least filled stroke that has capacity
-      const overflow=Object.entries(maxCounts).filter(([s,m])=>(strokeFilled[s]||0)<m);
-      if(overflow.length){
-        const [str]=overflow.sort((a,b)=>(strokeFilled[a[0]]||0)-(strokeFilled[b[0]]||0))[0];
-        assigned={stroke:str,time:scores[str]||999};strokeFilled[str]=(strokeFilled[str]||0)+1;
-      } else {
-        assigned={stroke:'FR',time:scores['FR']||999};
-      }
-    }
-    assignments.set(sw.id,assigned);
+    return{sw,scores,age:rbAge(sw),bracketIdx:brackets.length?rbBracketOf(rbAge(sw),brackets):-1};
   });
 
-  // 2. Split into numTeams to balance
-  const swimmerList=pool.map(sw=>({sw,stroke:assignments.get(sw.id)?.stroke||'FR',time:assignments.get(sw.id)?.time||999}));
-  swimmerList.sort((a,b)=>a.time-b.time); // fastest first
-
-  const teams=Array.from({length:numTeams},(_,i)=>({name:'Team '+(String.fromCharCode(65+i)),legs:[],totalTime:0}));
-
-  if(balance==='snake'){
-    // Snake draft: 1st to team1, 2nd to team2, ..., Nth to teamN, (N+1)th to teamN, ...
-    let dir=1,teamIdx=0;
-    swimmerList.forEach((entry,i)=>{
-      teams[teamIdx].legs.push({stroke:entry.stroke,swimmerId:entry.sw.id,time:entry.time});
-      teams[teamIdx].totalTime+=entry.time;
-      teamIdx+=dir;
-      if(teamIdx>=numTeams){teamIdx=numTeams-1;dir=-1;}
-      else if(teamIdx<0){teamIdx=0;dir=1;}
+  // ── Validate a proposed team assignment against stair-step ──
+  function teamIsValid(members){
+    if(!brackets.length)return true;
+    const bis=members.map(m=>m.bracketIdx);
+    return brackets.every((b,i)=>{
+      let countAtOrAbove=0;
+      bis.forEach(bi=>{if(bi>=i)countAtOrAbove++;});
+      return countAtOrAbove<=brackets.length-i;
     });
-  } else {
-    // Competitive: greedy assign each swimmer to the team with lowest total time
-    swimmerList.forEach(entry=>{
-      const target=teams.reduce((mn,t)=>t.totalTime<mn.totalTime?t:mn,teams[0]);
-      target.legs.push({stroke:entry.stroke,swimmerId:entry.sw.id,time:entry.time});
-      target.totalTime+=entry.time;
+  }
+
+  // ── Build stroke distribution counts per team ──
+  const maxCounts={};
+  strokeLegs.forEach(s=>maxCounts[s]=(maxCounts[s]||0)+1);
+  const strokeKeys=Object.keys(maxCounts); // unique strokes
+
+  // ── For each team, pick the best valid set of {legsPerTeam} swimmers ──
+  // using a greedy bracket-aware approach:
+  // 1. Group candidates by bracket
+  // 2. Assign one swimmer per bracket slot (youngest to oldest)
+  // 3. If brackets < legsPerTeam, fill remaining from fastest unassigned
+
+  const teams=Array.from({length:numTeams},(_,i)=>({
+    name:'Team '+(String.fromCharCode(65+i)),legs:[],totalTime:0
+  }));
+  const usedIds=new Set();
+
+  // Helper: assign strokes to a team's members to minimise total time
+  function assignStrokes(members){
+    // For each stroke slot, pick the fastest available member for it
+    const remaining=[...members];
+    const result=[];
+    // Process strokes in order of fewest candidates (most constrained first)
+    const strokeOrder=[...strokeLegs].sort((a,b)=>{
+      // sort by how many members are best at this stroke
+      const ca=remaining.filter(m=>Object.entries(m.scores).sort((x,y)=>x[1]-y[1])[0][0]===a).length;
+      const cb=remaining.filter(m=>Object.entries(m.scores).sort((x,y)=>x[1]-y[1])[0][0]===b).length;
+      return ca-cb;
+    });
+    const assigned=new Set();
+    strokeOrder.forEach(stroke=>{
+      const candidates=remaining.filter(m=>!assigned.has(m.sw.id)).sort((a,b)=>a.scores[stroke]-b.scores[stroke]);
+      if(!candidates.length)return;
+      const pick=candidates[0];
+      assigned.add(pick.sw.id);
+      result.push({stroke,swimmerId:pick.sw.id,time:pick.scores[stroke]});
+    });
+    // Any remaining unassigned members get FR
+    remaining.filter(m=>!assigned.has(m.sw.id)).forEach(m=>{
+      result.push({stroke:'FR',swimmerId:m.sw.id,time:m.scores['FR']});
+    });
+    return result;
+  }
+
+  // Build each team
+  for(let ti=0;ti<numTeams;ti++){
+    const available=swimmerScores.filter(m=>!usedIds.has(m.sw.id));
+    if(available.length<legsPerTeam){
+      // Not enough left — fill with what's available
+      available.forEach(m=>usedIds.add(m.sw.id));
+      teams[ti].legs=assignStrokes(available);
+      teams[ti].totalTime=teams[ti].legs.reduce((s,l)=>s+l.time,0);
+      break;
+    }
+
+    let teamMembers=[];
+
+    if(brackets.length){
+      // Stair-step: try to pick one swimmer per bracket, then fill remaining
+      const byBracket=brackets.map((_,bi)=>available.filter(m=>m.bracketIdx===bi));
+      const picked=[];
+
+      // Sort brackets youngest first, pick fastest for each stroke
+      brackets.forEach((_,bi)=>{
+        const candidates=byBracket[bi].filter(m=>!picked.includes(m));
+        if(!candidates.length)return;
+        // Pick the fastest candidate for any unfilled stroke
+        candidates.sort((a,b)=>{
+          const bestA=Math.min(...strokeLegs.map(s=>a.scores[s]||999));
+          const bestB=Math.min(...strokeLegs.map(s=>b.scores[s]||999));
+          return bestA-bestB;
+        });
+        picked.push(candidates[0]);
+      });
+
+      // Fill remaining slots from fastest available (leveling up younger swimmers)
+      const stillNeeded=legsPerTeam-picked.length;
+      const remainder=available.filter(m=>!picked.includes(m))
+        .sort((a,b)=>{
+          const bestA=Math.min(...strokeLegs.map(s=>a.scores[s]||999));
+          const bestB=Math.min(...strokeLegs.map(s=>b.scores[s]||999));
+          return bestA-bestB;
+        });
+      for(let i=0;i<stillNeeded&&i<remainder.length;i++)picked.push(remainder[i]);
+
+      // Validate stair-step — if invalid, try alternative combinations
+      teamMembers=picked.slice(0,legsPerTeam);
+      if(!teamIsValid(teamMembers)&&!rbOverride){
+        // Try all combinations of legsPerTeam from available (up to reasonable limit)
+        const avail20=available.slice(0,20); // limit search
+        let best=null,bestTime=Infinity;
+        // Generate combinations
+        function combine(start,current){
+          if(current.length===legsPerTeam){
+            if(teamIsValid(current)){
+              const t=current.reduce((s,m)=>s+Math.min(...strokeLegs.map(str=>m.scores[str]||999)),0);
+              if(t<bestTime){bestTime=t;best=[...current];}
+            }
+            return;
+          }
+          for(let i=start;i<avail20.length;i++)combine(i+1,[...current,avail20[i]]);
+        }
+        combine(0,[]);
+        if(best)teamMembers=best;
+      }
+    } else {
+      // No stair-step — just pick fastest legsPerTeam swimmers
+      teamMembers=available
+        .sort((a,b)=>{
+          const bestA=Math.min(...strokeLegs.map(s=>a.scores[s]||999));
+          const bestB=Math.min(...strokeLegs.map(s=>b.scores[s]||999));
+          return bestA-bestB;
+        })
+        .slice(0,legsPerTeam);
+    }
+
+    teamMembers.forEach(m=>usedIds.add(m.sw.id));
+    teams[ti].legs=assignStrokes(teamMembers);
+    teams[ti].totalTime=teams[ti].legs.reduce((s,l)=>s+l.time,0);
+  }
+
+  // ── Balance teams if competitive mode ──
+  // Swap legs between teams to minimise time gap
+  if(balance==='competitive'&&numTeams>1){
+    let improved=true;
+    for(let iter=0;iter<50&&improved;iter++){
+      improved=false;
+      for(let ti=0;ti<teams.length;ti++){
+        for(let tj=ti+1;tj<teams.length;tj++){
+          for(let li=0;li<teams[ti].legs.length;li++){
+            for(let lj=0;lj<teams[tj].legs.length;lj++){
+              // Try swap
+              const swi=teams[ti].legs[li],swj=teams[tj].legs[lj];
+              if(swi.stroke!==swj.stroke)continue; // only swap same stroke for medley validity
+              const beforeDiff=Math.abs(teams[ti].totalTime-teams[tj].totalTime);
+              const newTiTime=teams[ti].totalTime-swi.time+swj.time;
+              const newTjTime=teams[tj].totalTime-swj.time+swi.time;
+              const afterDiff=Math.abs(newTiTime-newTjTime);
+              if(afterDiff<beforeDiff){
+                // Check stair-step validity after swap
+                const newTiMembers=teams[ti].legs.map((l,i)=>i===li?{bracketIdx:swimmerScores.find(m=>m.sw.id===swj.swimmerId)?.bracketIdx??-1}:{bracketIdx:swimmerScores.find(m=>m.sw.id===l.swimmerId)?.bracketIdx??-1});
+                const newTjMembers=teams[tj].legs.map((l,i)=>i===lj?{bracketIdx:swimmerScores.find(m=>m.sw.id===swi.swimmerId)?.bracketIdx??-1}:{bracketIdx:swimmerScores.find(m=>m.sw.id===l.swimmerId)?.bracketIdx??-1});
+                if((teamIsValid(newTiMembers)&&teamIsValid(newTjMembers))||rbOverride){
+                  [teams[ti].legs[li],teams[tj].legs[lj]]=[swj,swi];
+                  teams[ti].totalTime=newTiTime;
+                  teams[tj].totalTime=newTjTime;
+                  improved=true;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } else if(balance==='snake'&&numTeams>1){
+    // Re-sort all used legs by time and redistribute snake-style
+    const allLegs=teams.flatMap(t=>t.legs).sort((a,b)=>a.time-b.time);
+    teams.forEach(t=>{t.legs=[];t.totalTime=0;});
+    let dir=1,tidx=0;
+    allLegs.forEach(leg=>{
+      teams[tidx].legs.push(leg);
+      teams[tidx].totalTime+=leg.time;
+      tidx+=dir;
+      if(tidx>=numTeams){tidx=numTeams-1;dir=-1;}
+      else if(tidx<0){tidx=0;dir=1;}
     });
   }
 
@@ -3909,6 +4040,10 @@ function rbAutoSuggest(){
   };
   rbOverride=false;
   rbRenderWorkspace();
+  // Show how many swimmers were used vs selected
+  const used=numTeams*legsPerTeam;
+  const leftOut=pool.length-Math.min(used,pool.length);
+  flash('rb-msg','Suggested '+numTeams+' team(s) of '+legsPerTeam+' swimmers.'+(leftOut>0?' '+leftOut+' swimmer(s) from your selection were not needed.':''));
 }
 
 function rbBuildManual(){
